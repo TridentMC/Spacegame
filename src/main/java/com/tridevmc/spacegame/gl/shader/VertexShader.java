@@ -1,5 +1,6 @@
-package com.tridevmc.spacegame.gl;
+package com.tridevmc.spacegame.gl.shader;
 
+import com.tridevmc.spacegame.gl.shader.Shader;
 import org.lwjgl.opengl.GL33;
 
 import java.io.File;

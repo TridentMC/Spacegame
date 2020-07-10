@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.gl;
+package com.tridevmc.spacegame.gl.shader;
 
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryStack;
