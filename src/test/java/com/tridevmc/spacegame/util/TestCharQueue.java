@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class TestCharQueue {
-    private CharQueue _queue = new CharQueue();
+    private final CharQueue _queue = new CharQueue();
 
     @Test
     void enqueueDequeue() {

@@ -3,7 +3,7 @@ package com.tridevmc.spacegame.gl.shader;
 import org.lwjgl.opengl.GL33;
 
 public class ShaderProgram {
-    private int _program;
+    private final int _program;
 
     public ShaderProgram(VertexShader vertexShader, FragmentShader fragmentShader) {
         _program = GL33.glCreateProgram();

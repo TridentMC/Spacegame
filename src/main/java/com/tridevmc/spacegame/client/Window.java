@@ -1,32 +1,25 @@
 package com.tridevmc.spacegame.client;
 
 import com.tridevmc.spacegame.SpaceGame;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL33;
-import org.lwjgl.stb.STBImageWrite;
 import org.lwjgl.system.MemoryStack;
 
-import java.io.File;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.Date;
 
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
     public final long window;
-    public static boolean[] keyStates = new boolean[GLFW.GLFW_KEY_LAST+1];
+    public static final boolean[] keyStates = new boolean[GLFW.GLFW_KEY_LAST+1];
     private int _fWidth;
     private int _fHeight;
     private boolean _focused = false;
     private int _width;
     private int _height;
-    private boolean _vsync = false;
+    private final boolean _vsync = false;
 
     public Window() {
         GLFWErrorCallback.createPrint(System.err).set();

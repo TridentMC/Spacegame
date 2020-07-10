@@ -31,9 +31,9 @@ public class SpaceGame {
     private static Obj obj;
     private static ShaderProgram s;
 
-    public static Camera c = new Camera();
+    public static final Camera c = new Camera();
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         try {
             w = new Window();
             run();
@@ -102,6 +102,7 @@ public class SpaceGame {
                 GL33.glUniformMatrix4fv(_uniProj, false, proj.proj.get(stack.mallocFloat(16)));
                 GL33.glUniform3fv(_uniLight, c.getPos().get(stack.mallocFloat(3)));
             } finally {
+                assert stack != null;
                 stack.pop();
             }
 

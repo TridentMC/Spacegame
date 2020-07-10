@@ -1,5 +1,9 @@
 package com.tridevmc.spacegame.cpu;
 
+import com.tridevmc.spacegame.cpu.hardware.HardwareList;
+import com.tridevmc.spacegame.cpu.hardware.IHardware;
+import com.tridevmc.spacegame.util.CharQueue;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -8,21 +12,21 @@ import java.util.function.Consumer;
 public class DCPU {
     public char a, b, c, x, y, z, i, j;
     public char pc, sp, ex, ia;
-    public char[] ram = new char[0x10000];
+    public final char[] ram = new char[0x10000];
     public int lastCycles = 0;
     public int cycles = 0;
-    private List<BiConsumer<Integer, Integer>> _ops = new ArrayList<>(0x20);
-    private List<Consumer<Integer>> _unary = new ArrayList<>(0x20);
-    private boolean _skipNext = false;
+    private final CharQueue _interruptQueue = new CharQueue();
+    private boolean _queueing = false;
+    private final List<BiConsumer<Integer, Integer>> _ops = new ArrayList<>(0x20);
+    private final List<Consumer<Integer>> _unary = new ArrayList<>(0x20);
+    private final HardwareList _hardwareList = new HardwareList();
 
     public DCPU() {
         for(int i =0x00;i < 0x20;i++) {
             _ops.add(null);
         }
 
-        _ops.set(0x00, (a, b) -> {
-            _unary.get(b).accept(a);
-        }); // special
+        _ops.set(0x00, (a, b) -> _unary.get(b).accept(a)); // special
         _ops.set(0x01, (a, b) -> { // SET
             cycles += 1;
             char val = read(getAddress(a, false));
@@ -157,49 +161,49 @@ public class DCPU {
             cycles += 2;
             char av = read(getAddress(a, false));
             char bv = read(getAddress(b, true));
-            _skipNext = ((bv&av) == 0);
+            if(((bv&av) == 0)) skipNext();
         });
         _ops.set(0x11, (a, b) -> { // IFC
             cycles += 2;
             char av = read(getAddress(a, false));
             char bv = read(getAddress(b, true));
-            _skipNext = ((bv&av) != 0);
+            if((bv&av) != 0) skipNext();
         });
         _ops.set(0x12, (a, b) -> { // IFE
             cycles += 2;
             char av = read(getAddress(a, false));
             char bv = read(getAddress(b, true));
-            _skipNext = (bv != av);
+            if(bv != av) skipNext();
         });
         _ops.set(0x13, (a, b) -> { // IFN
             cycles += 2;
             char av = read(getAddress(a, false));
             char bv = read(getAddress(b, true));
-            _skipNext = (bv == av);
+            if(bv == av) skipNext();
         });
         _ops.set(0x14, (a, b) -> { // IFG
             cycles += 2;
             char av = read(getAddress(a, false));
             char bv = read(getAddress(b, true));
-            _skipNext = (bv < av);
+            if(bv < av) skipNext();
         });
         _ops.set(0x15, (a, b) -> { // IFA
             cycles += 2;
             int av = signedFromChar(read(getAddress(a, false)));
             int bv = signedFromChar(read(getAddress(b, true)));
-            _skipNext = (bv < av);
+            if(bv < av) skipNext();
         });
         _ops.set(0x16, (a, b) -> { // IFL
             cycles += 2;
             char av = read(getAddress(a, false));
             char bv = read(getAddress(b, true));
-            _skipNext = (bv > av);
+            if(bv > av) skipNext();
         });
         _ops.set(0x17, (a, b) -> { // IFU
             cycles += 2;
             int av = signedFromChar(read(getAddress(a, false)));
             int bv = signedFromChar(read(getAddress(b, true)));
-            _skipNext = (bv > av);
+            if(bv > av) skipNext();
         });
         _ops.set(0x18, (a, b) -> { // undefined
             getAddress(a, false, false);
@@ -258,6 +262,7 @@ public class DCPU {
             getAddress(a, false, false);
         });
         _unary.set(0x01, (a) -> { // JSR
+            cycles += 3;
             char val = read(getAddress(a, false));
             ram[--sp] = (char)(pc+1);
             pc = val;
@@ -281,22 +286,27 @@ public class DCPU {
             getAddress(a, false, false);
         });
         _unary.set(0x08, (a) -> { // INT
-            // TODO
-            char msg = read(getAddress(a, false));
+            cycles += 4;
+            _interruptQueue.enqueue(read(getAddress(a, false)));
         });
         _unary.set(0x09, (a) -> { // IAG
+            cycles += 1;
             write(getAddress(a, false), ia);
         });
         _unary.set(0x0A, (a) -> { // IAS
+            cycles += 1;
             ia = read(getAddress(a, false));
         });
         _unary.set(0x0B, (a) -> { // RFI
-            // TODO
-            read(getAddress(a, false));
+            cycles += 3;
+            _queueing = false;
+            read(getAddress(a, false)); // discard?
+            this.a = ram[sp++];
+            this.pc = ram[sp++];
         });
         _unary.set(0x0C, (a) -> { // IAQ
-            // TODO
-            read(getAddress(a, false));
+            cycles += 2;
+            _queueing = read(getAddress(a, false)) != 0;
         });
         _unary.set(0x0D, (a) -> { // undefined
             getAddress(a, false, false);
@@ -309,26 +319,39 @@ public class DCPU {
         });
         _unary.set(0x10, (a) -> { // HWN
             // TODO
+            cycles += 2;
            write(getAddress(a, false), (char)0);
         });
         _unary.set(0x11, (a) -> { // HWQ
             // TODO
+            cycles += 4;
             char id = read(getAddress(a, false));
-            this.a = 0;
-            this.b = 0;
-            this.c = 0;
-            this.x = 0;
-            this.y = 0;
+            IHardware hw = _hardwareList.get(id);
+            if(hw != null) {
+                int hid = hw.id();
+                this.a = (char)(hid & 0x0000FFFF);
+                this.b = (char)((hid >> 16) & 0x0000FFFF);
+                this.c = hw.version();
+                int hman = hw.manufacturer();
+                this.x = (char)(hman & 0x0000FFFF);
+                this.y = (char)((hman >> 16) & 0x0000FFFF);
+            }
+
         });
         _unary.set(0x12, (a) -> { // HWI
-            // TODO
+            cycles += 4;
             char id = read(getAddress(a, false));
+            _hardwareList.interrupt(id);
         });
         for(int i =0x13;i < 0x20;i++) {
             _unary.set(i, (a) -> { // undefined
                 getAddress(a, false, false);
             });
         }
+    }
+
+    public void connect(IHardware hw) {
+        _hardwareList.connect(this, hw);
     }
 
     public char signedToChar(int signed) {
@@ -358,28 +381,51 @@ public class DCPU {
                  + ((a & 0b111111) << 10));
     }
 
-    public int eval(char word) {
+    public void skipNext() {
+        cycles++;
+        char word = ram[pc++];
+        int opcode = (word & 0b0000000000011111);
+        int a =      (word & 0b1111110000000000) >> 10;
+        int b =      (word & 0b0000001111100000) >> 5;
+        getAddress(a, false, false);
+        if(opcode != 0x00)
+            getAddress(b, true, false);
+        if((ram[pc-1] & 0b0000000000011111) >= 0x10 && (ram[pc-1] & 0b0000000000011111) <= 0x17) {
+            skipNext();
+        }
+    }
+
+    public void interrupt(char msg) {
+        _interruptQueue.enqueue(msg);
+    }
+
+    private void processInterrupt(char msg) {
+        if (ia != 0) {
+            _queueing = true;
+            ram[--sp] = pc;
+            ram[--sp] = a;
+            pc = ia;
+            a = msg;
+        }
+    }
+
+    public void eval(char word) {
         pc++;
         int opcode = (word & 0b0000000000011111);
         int a =      (word & 0b1111110000000000) >> 10;
         int b =      (word & 0b0000001111100000) >> 5;
-
-        if(_skipNext) {
-            cycles++;
-            getAddress(a, false, false);
-            getAddress(b, true, false);
-            _skipNext = (ram[pc-1] & 0b0000000000011111) >= 0x10 && (ram[pc-1] & 0b0000000000011111) <= 0x17;
-            return cycles;
-        }
 
         if(opcode >= _ops.size()) {
             throw new RuntimeException("Bad opcode '" + opcode + "'!");
         }
 
         _ops.get(opcode).accept(a, b);
-        int c = cycles - lastCycles;
+
+        if(!_queueing && _interruptQueue.size() != 0) {
+            processInterrupt(_interruptQueue.dequeue());
+        }
+
         lastCycles = cycles;
-        return c;
     }
 
     public char read(int loc) {

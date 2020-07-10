@@ -1,8 +1,8 @@
 package com.tridevmc.spacegame.util;
 
 public class CharQueue {
-    private char[] _store;
-    private int _cap = 0;
+    private final char[] _store;
+    private final int _cap;
     private int _head = 0;
     private int _tail = 0;
     private int _len = 0;
@@ -32,5 +32,9 @@ public class CharQueue {
         --_len;
         if(_head >= _cap) _head = 0;
         return value;
+    }
+
+    public int size() {
+        return _len;
     }
 }

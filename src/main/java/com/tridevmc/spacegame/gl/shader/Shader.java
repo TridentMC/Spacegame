@@ -5,16 +5,17 @@ import org.lwjgl.system.MemoryStack;
 
 import java.io.*;
 import java.nio.IntBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class Shader {
-    private int _shader;
+    private final int _shader;
     public boolean good = false;
     public Shader(int type, File file) throws IOException {
 
         _shader = GL33.glCreateShader(type);
 
         InputStream stream = getClass().getClassLoader().getResourceAsStream(file.getPath());
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF8"));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         StringBuilder text = new StringBuilder();
         while(reader.ready()) {
             text.append(reader.readLine()).append('\n');
@@ -32,6 +33,7 @@ public class Shader {
                 throw new IllegalStateException(GL33.glGetShaderInfoLog(_shader, 512));
             good = true;
         } finally {
+            assert stack != null;
             stack.pop();
         }
     }
