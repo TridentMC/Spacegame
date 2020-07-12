@@ -19,11 +19,12 @@ public class Window {
     private boolean _focused = false;
     private int _width;
     private int _height;
-    private final boolean _vsync = false;
+    private final boolean _vsync = true;
 
     public Window() {
         GLFWErrorCallback.createPrint(System.err).set();
-        if(!GLFW.glfwInit()) {
+        boolean init = GLFW.glfwInit();
+        if(!init) {
             throw new RuntimeException("Unable to initialize GLFW!");
         }
 

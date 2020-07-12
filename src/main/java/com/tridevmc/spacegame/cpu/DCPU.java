@@ -264,7 +264,7 @@ public class DCPU {
         _unary.set(0x01, (a) -> { // JSR
             cycles += 3;
             char val = read(getAddress(a, false));
-            ram[--sp] = (char)(pc+1);
+            ram[--sp] = pc;
             pc = val;
         });
         _unary.set(0x02, (a) -> { // undefined
@@ -318,12 +318,10 @@ public class DCPU {
             getAddress(a, false, false);
         });
         _unary.set(0x10, (a) -> { // HWN
-            // TODO
             cycles += 2;
-           write(getAddress(a, false), (char)0);
+            write(getAddress(a, false), _hardwareList.size());
         });
         _unary.set(0x11, (a) -> { // HWQ
-            // TODO
             cycles += 4;
             char id = read(getAddress(a, false));
             IHardware hw = _hardwareList.get(id);

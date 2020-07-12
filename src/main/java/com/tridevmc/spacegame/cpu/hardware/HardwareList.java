@@ -38,4 +38,8 @@ public class HardwareList {
         if(hwid >= _len) return null;
         return _list[hwid];
     }
+
+    public char size() {
+        return (char)_len;
+    }
 }
