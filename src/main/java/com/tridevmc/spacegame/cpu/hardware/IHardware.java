@@ -8,4 +8,6 @@ public interface IHardware {
     int id();
     char version();
     int manufacturer();
+
+    void update();
 }

@@ -42,4 +42,10 @@ public class HardwareList {
     public char size() {
         return (char)_len;
     }
+
+    public void updateAll() {
+        for(int i =0;i < _len;i++) {
+            _list[i].update();
+        }
+    }
 }

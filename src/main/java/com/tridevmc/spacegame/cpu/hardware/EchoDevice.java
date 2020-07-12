@@ -38,4 +38,9 @@ public class EchoDevice implements IHardware {
     public int manufacturer() {
         return 0xFFFFFFFF;
     }
+
+    @Override
+    public void update() {
+
+    }
 }

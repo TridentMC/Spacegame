@@ -19,7 +19,7 @@ public class DCPU {
     private boolean _queueing = false;
     private final List<BiConsumer<Integer, Integer>> _ops = new ArrayList<>(0x20);
     private final List<Consumer<Integer>> _unary = new ArrayList<>(0x20);
-    private final HardwareList _hardwareList = new HardwareList();
+    public final HardwareList hardwareList = new HardwareList();
 
     public DCPU() {
         for(int i =0x00;i < 0x20;i++) {
@@ -319,12 +319,12 @@ public class DCPU {
         });
         _unary.set(0x10, (a) -> { // HWN
             cycles += 2;
-            write(getAddress(a, false), _hardwareList.size());
+            write(getAddress(a, false), hardwareList.size());
         });
         _unary.set(0x11, (a) -> { // HWQ
             cycles += 4;
             char id = read(getAddress(a, false));
-            IHardware hw = _hardwareList.get(id);
+            IHardware hw = hardwareList.get(id);
             if(hw != null) {
                 int hid = hw.id();
                 this.a = (char)(hid & 0x0000FFFF);
@@ -339,7 +339,7 @@ public class DCPU {
         _unary.set(0x12, (a) -> { // HWI
             cycles += 4;
             char id = read(getAddress(a, false));
-            _hardwareList.interrupt(id);
+            hardwareList.interrupt(id);
         });
         for(int i =0x13;i < 0x20;i++) {
             _unary.set(i, (a) -> { // undefined
@@ -349,7 +349,7 @@ public class DCPU {
     }
 
     public void connect(IHardware hw) {
-        _hardwareList.connect(this, hw);
+        hardwareList.connect(this, hw);
     }
 
     public char signedToChar(int signed) {
@@ -407,23 +407,24 @@ public class DCPU {
         }
     }
 
-    public void eval(char word) {
-        pc++;
-        int opcode = (word & 0b0000000000011111);
-        int a =      (word & 0b1111110000000000) >> 10;
-        int b =      (word & 0b0000001111100000) >> 5;
+    public void eval(int cycles) {
+        while(this.cycles < cycles) {
+            char word = ram[pc++];
+            int opcode = (word & 0b0000000000011111);
+            int a = (word & 0b1111110000000000) >> 10;
+            int b = (word & 0b0000001111100000) >> 5;
 
-        if(opcode >= _ops.size()) {
-            throw new RuntimeException("Bad opcode '" + opcode + "'!");
+            if (opcode >= _ops.size()) {
+                throw new RuntimeException("Bad opcode '" + opcode + "'!");
+            }
+
+            _ops.get(opcode).accept(a, b);
+
+            if (!_queueing && _interruptQueue.size() != 0) {
+                processInterrupt(_interruptQueue.dequeue());
+            }
         }
-
-        _ops.get(opcode).accept(a, b);
-
-        if(!_queueing && _interruptQueue.size() != 0) {
-            processInterrupt(_interruptQueue.dequeue());
-        }
-
-        lastCycles = cycles;
+        this.cycles = 0;
     }
 
     public char read(int loc) {
@@ -600,9 +601,20 @@ public class DCPU {
         throw new RuntimeException("address id '" + loc + "' invalid!!!");
     }
 
-    public char next_word() {
-        cycles += 1;
-        return ram[pc++];
+    public String dump() {
+       return
+               "A: " + String.format("0x%04X", (int) this.a) +
+                       "\nB: " + String.format("0x%04X", (int) this.b) +
+                       "\nC: " + String.format("0x%04X", (int) this.c) +
+                       "\nX: " + String.format("0x%04X", (int) this.x) +
+                       "\nY: " + String.format("0x%04X", (int) this.y) +
+                       "\nZ: " + String.format("0x%04X", (int) this.z) +
+                       "\nI: " + String.format("0x%04X", (int) this.i) +
+                       "\nJ: " + String.format("0x%04X", (int) this.j) +
+                       "\nSP: " + String.format("0x%04X", (int) this.sp) +
+                       "\nPC: " + String.format("0x%04X", (int) this.pc) +
+                       "\nEX: " + String.format("0x%04X", (int) this.ex) +
+                       "\nIA: " + String.format("0x%04X", (int) this.ia);
     }
 
 
