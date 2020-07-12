@@ -327,12 +327,12 @@ public class DCPU {
             IHardware hw = hardwareList.get(id);
             if(hw != null) {
                 int hid = hw.id();
-                this.a = (char)(hid & 0x0000FFFF);
-                this.b = (char)((hid >> 16) & 0x0000FFFF);
+                this.a = (char)(hid & 0xFFFF);
+                this.b = (char)((hid >> 16) & 0xFFFF);
                 this.c = hw.version();
                 int hman = hw.manufacturer();
-                this.x = (char)(hman & 0x0000FFFF);
-                this.y = (char)((hman >> 16) & 0x0000FFFF);
+                this.x = (char)(hman & 0xFFFF);
+                this.y = (char)((hman >> 16) & 0xFFFF);
             }
 
         });
@@ -388,7 +388,7 @@ public class DCPU {
         getAddress(a, false, false);
         if(opcode != 0x00)
             getAddress(b, true, false);
-        if((ram[pc-1] & 0b0000000000011111) >= 0x10 && (ram[pc-1] & 0b0000000000011111) <= 0x17) {
+        if(opcode >= 0x10 && opcode <= 0x17) {
             skipNext();
         }
     }

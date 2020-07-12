@@ -5,7 +5,7 @@ import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
 public class Camera {
-    private final Vector3f _pos = new Vector3f(0.0f, 0.0f, -2.0f);
+    private final Vector3f _pos = new Vector3f(0.0f, 0.0f, 0.0f);
     private Vector3f _front = new Vector3f(0.0f, 0.0f, 1.0f);
     private final Vector3f _up = new Vector3f(0.0f, 1.0f, 0.0f);
 

@@ -23,7 +23,7 @@ public class LEM1802 implements IHardware, I2DScreen {
     };
 
     private DCPU _origin;
-    private char _vramIndex = 0x0000;
+    private char _vramIndex = 0x8000;
     private char _framIndex = 0x0000;
     private char _pramIndex = 0x0000;
     private int _bootTimer = 60;
