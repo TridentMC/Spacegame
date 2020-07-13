@@ -8,41 +8,27 @@ import com.tridevmc.spacegame.cpu.hardware.EchoDevice;
 import com.tridevmc.spacegame.cpu.hardware.LEM1802;
 import com.tridevmc.spacegame.cpu.hardware.backend.GLWorldScreenRenderer;
 import com.tridevmc.spacegame.cpu.hardware.backend.IScreenRenderer;
-import com.tridevmc.spacegame.gl.ObjHelper;
-import com.tridevmc.spacegame.gl.shader.FragmentShader;
-import com.tridevmc.spacegame.gl.shader.ShaderProgram;
-import com.tridevmc.spacegame.gl.shader.VertexShader;
-import de.javagl.obj.Obj;
-import de.javagl.obj.ObjData;
-import de.javagl.obj.ObjReader;
-import de.javagl.obj.ObjUtils;
-import org.joml.Matrix4f;
+import com.tridevmc.spacegame.world.scene.Mesh;
+import com.tridevmc.spacegame.gl.shader.*;
+import com.tridevmc.spacegame.util.ResourceLocation;
+import com.tridevmc.spacegame.world.scene.StaticObject;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryStack;
 import org.tinylog.Logger;
-import sun.jvm.hotspot.memory.Space;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public class SpaceGame {
     private static Window w;
 
-    private static int vao;
-    private static int vbo;
-    private static int ebo;
-    private static Obj obj;
-    private static ShaderProgram s;
-
-    private static int _uniProj;
-    private static int _uniView;
-    private static int _uniTrans;
-    private static int _uniLight;
-
+    private static StaticObject object;
+    private static StaticObject deux;
+    private static StaticObject trois;
 
     private static DCPU cpu;
     private static LEM1802 mon;
@@ -51,15 +37,43 @@ public class SpaceGame {
 
     public static final Camera c = new Camera();
 
+    static ShaderProgram world;
+    static ShaderProgram screen;
+    static ShaderProgram def;
+
     public static void main(String[] args) {
         try {
             w = new Window();
+            loadContent();
             run();
         } catch(Exception e) {
             Logger.error("Caught exception while running :(");
             Logger.error(e);
         }
         w.destroy();
+    }
+
+    public static void loadContent() throws IOException {
+        world = new ShaderProgram(new ResourceLocation("spacegame", "world"));
+        world.registerAttribute(AttributeType.VERTEX, 3, GL33.GL_FLOAT, "position");
+        world.registerAttribute(AttributeType.NORMAL, 3, GL33.GL_FLOAT, "normal");
+        world.registerUniform(UniformType.MODEL, "model");
+        world.registerUniform(UniformType.VIEW, "view");
+        world.registerUniform(UniformType.PROJ, "proj");
+        world.registerUniform(UniformType.LIGHT_POS, "lightPos");
+        world.registerUniform(UniformType.LIGHT_COL, "lightCol");
+        screen = new ShaderProgram(new ResourceLocation("spacegame", "world_screen"));
+        screen.registerAttribute(AttributeType.VERTEX, 3, GL33.GL_FLOAT, "position");
+        screen.registerAttribute(AttributeType.TEXCOORD, 2, GL33.GL_FLOAT, "texCoord");
+        screen.registerUniform(UniformType.MODEL, "model");
+        screen.registerUniform(UniformType.VIEW, "view");
+        screen.registerUniform(UniformType.PROJ, "proj");
+        def = new ShaderProgram(new ResourceLocation("spacegame", "default"));
+        def.registerAttribute(AttributeType.VERTEX, 2, GL33.GL_FLOAT, "position");
+        def.registerAttribute(AttributeType.TEXCOORD, 2, GL33.GL_FLOAT, "texCoord");
+
+        Mesh.registerMesh(new ResourceLocation("spacegame", "testmesh"), world);
+        Mesh.registerMesh(new ResourceLocation("spacegame", "cube"), world);
     }
 
     private static int loadRom(DCPU cpu, int ...args) {
@@ -86,7 +100,6 @@ public class SpaceGame {
     }
 
     public static void run() throws IOException {
-        GL.createCapabilities();
 
         cpu = new DCPU();
         mon = new LEM1802();
@@ -96,44 +109,17 @@ public class SpaceGame {
         cpu.connect(echo);
 
         monren = new GLWorldScreenRenderer();
-        monren.init(mon);
+        monren.init(screen, mon);
 
-        int max = loadRom(cpu, new File("/diag.bin"));
+        int max = loadRom(cpu, new File("/fonttest.bin"));
+
         GL33.glEnable(GL33.GL_DEPTH_TEST);
         GL33.glEnable(GL33.GL_CULL_FACE);
         GL33.glEnable(GL33.GL_TEXTURE_2D);
 
-        obj = ObjReader.read(SpaceGame.class.getResourceAsStream("/testmesh.obj"));
-        obj = ObjUtils.convertToRenderable(obj);
-
-        vao = GL33.glGenVertexArrays();
-        GL33.glBindVertexArray(vao);
-        vbo = GL33.glGenBuffers();
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vbo);
-        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, ObjHelper.getVerticiesAndNormals(obj), GL33.GL_STATIC_DRAW);
-        ebo = GL33.glGenBuffers();
-        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, ebo);
-        GL33.glBufferData(GL33.GL_ELEMENT_ARRAY_BUFFER, ObjData.getFaceVertexIndices(obj), GL33.GL_STATIC_DRAW);
-
-        VertexShader v = new VertexShader(new File("shaders", "world.vert"));
-        FragmentShader f = new FragmentShader(new File("shaders", "world.frag"));
-        s = new ShaderProgram(v, f);
-
-        s.use();
-
-        _uniTrans = GL33.glGetUniformLocation(s.getProgram(), "model");
-        _uniView = GL33.glGetUniformLocation(s.getProgram(), "view");
-        _uniProj = GL33.glGetUniformLocation(s.getProgram(), "proj");
-        _uniLight = GL33.glGetUniformLocation(s.getProgram(), "lightPos");
-
-        int posAttrib = GL33.glGetAttribLocation(s.getProgram(), "position");
-        GL33.glEnableVertexAttribArray(posAttrib);
-        GL33.glVertexAttribPointer(posAttrib, 3, GL33.GL_FLOAT, false, 6*4, 0L);
-
-        int normAttrib = GL33.glGetAttribLocation(s.getProgram(), "normal");
-        GL33.glEnableVertexAttribArray(normAttrib);
-        GL33.glVertexAttribPointer(normAttrib, 3, GL33.GL_FLOAT, false, 6*4, 3*4);
-
+        object = new StaticObject(new ResourceLocation("spacegame", "testmesh"), 2.0f, new Quaternionf(), new Vector3f(0.0f, 0.0f, 0.0f));
+        deux = new StaticObject(new ResourceLocation("spacegame", "cube"), 1.0f, new Quaternionf(), new Vector3f(0.0f, 0.0f, -0.001f));
+        trois = new StaticObject(new ResourceLocation("spacegame", "testmesh"), 2.0f, new Quaternionf(), new Vector3f(-20.0f, 0.0f, 0.0f));
         GL33.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         while ( !GLFW.glfwWindowShouldClose(w.window) ) {
@@ -157,34 +143,31 @@ public class SpaceGame {
         }
 
         cpu.hardwareList.updateAll();
+
+        trois.getTransform().rotate(0.0f, 1.0f, 0.0f, (float)(0.1f*Math.PI/180.0f));
     }
 
     private static void render() {
         ViewProj proj = c.generateViewProj(128.0f);
 
-        GL33.glBindVertexArray(vao);
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, vbo);
-        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-        s.use();
+        world.use();
 
         MemoryStack stack = null;
         try {
             stack = MemoryStack.stackPush();
-            GL33.glUniformMatrix4fv(_uniTrans, false, new Matrix4f().scale(8.0f).translate(0.0f, 0.0f, 0.0f).get(stack.mallocFloat(16)));
-            GL33.glUniformMatrix4fv(_uniView, false, proj.view.get(stack.mallocFloat(16)));
-            GL33.glUniformMatrix4fv(_uniProj, false, proj.proj.get(stack.mallocFloat(16)));
-            GL33.glUniform3fv(_uniLight, c.getPos().get(stack.mallocFloat(3)));
+            world.setUniform(UniformType.VIEW, proj.view.get(stack.mallocFloat(16)));
+            world.setUniform(UniformType.PROJ, proj.proj.get(stack.mallocFloat(16)));
+            world.setUniform(UniformType.LIGHT_POS, new Vector3f(0.0f, 5.0f, 0.0f).get(stack.mallocFloat(3)));
+            world.setUniform(UniformType.LIGHT_COL, mon.getAverage().get(stack.mallocFloat(3)));
         } finally {
             assert stack != null;
             stack.pop();
         }
 
-        GL33.glDrawElements(GL33.GL_TRIANGLES, ObjData.getTotalNumFaceVertices(obj), GL33.GL_UNSIGNED_INT, 0);
+        object.render(world);
+        deux.render(world);
+        trois.render(world);
 
-        //GL33.glDisable(GL33.GL_DEPTH_TEST);
-        monren.render(proj.proj, proj.view, mon);
-        //GL33.glEnable(GL33.GL_DEPTH_TEST);
-
+        monren.render(screen, proj, mon);
     }
 }

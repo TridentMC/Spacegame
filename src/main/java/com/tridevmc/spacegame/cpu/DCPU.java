@@ -3,6 +3,8 @@ package com.tridevmc.spacegame.cpu;
 import com.tridevmc.spacegame.cpu.hardware.HardwareList;
 import com.tridevmc.spacegame.cpu.hardware.IHardware;
 import com.tridevmc.spacegame.util.CharQueue;
+import com.tridevmc.spacegame.util.OverCapacityException;
+import org.tinylog.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +15,13 @@ public class DCPU {
     public char a, b, c, x, y, z, i, j;
     public char pc, sp, ex, ia;
     public final char[] ram = new char[0x10000];
-    public int lastCycles = 0;
     public int cycles = 0;
     private final CharQueue _interruptQueue = new CharQueue();
     private boolean _queueing = false;
     private final List<BiConsumer<Integer, Integer>> _ops = new ArrayList<>(0x20);
     private final List<Consumer<Integer>> _unary = new ArrayList<>(0x20);
     public final HardwareList hardwareList = new HardwareList();
+    public boolean halt = false;
 
     public DCPU() {
         for(int i =0x00;i < 0x20;i++) {
@@ -287,7 +289,7 @@ public class DCPU {
         });
         _unary.set(0x08, (a) -> { // INT
             cycles += 4;
-            _interruptQueue.enqueue(read(getAddress(a, false)));
+            interrupt(read(getAddress(a, false)));
         });
         _unary.set(0x09, (a) -> { // IAG
             cycles += 1;
@@ -382,9 +384,9 @@ public class DCPU {
     public void skipNext() {
         cycles++;
         char word = ram[pc++];
-        int opcode = (word & 0b0000000000011111);
-        int a =      (word & 0b1111110000000000) >> 10;
-        int b =      (word & 0b0000001111100000) >> 5;
+        int opcode = (word & 0b000000_00000_11111);
+        int a =      (word & 0b111111_00000_00000) >> 10;
+        int b =      (word & 0b000000_11111_00000) >> 5;
         getAddress(a, false, false);
         if(opcode != 0x00)
             getAddress(b, true, false);
@@ -394,7 +396,12 @@ public class DCPU {
     }
 
     public void interrupt(char msg) {
-        _interruptQueue.enqueue(msg);
+        try {
+            _interruptQueue.enqueue(msg);
+        } catch (OverCapacityException e) {
+            Logger.error("DCPU-16 has caught fire...");
+            halt = true;
+        }
     }
 
     private void processInterrupt(char msg) {
@@ -409,10 +416,12 @@ public class DCPU {
 
     public void eval(int cycles) {
         while(this.cycles < cycles) {
+            if(halt)
+                break;
             char word = ram[pc++];
-            int opcode = (word & 0b0000000000011111);
-            int a = (word & 0b1111110000000000) >> 10;
-            int b = (word & 0b0000001111100000) >> 5;
+            int opcode = (word & 0b000000_00000_11111);
+            int a =      (word & 0b111111_00000_00000) >> 10;
+            int b =      (word & 0b000000_11111_00000) >> 5;
 
             if (opcode >= _ops.size()) {
                 throw new RuntimeException("Bad opcode '" + opcode + "'!");
@@ -604,17 +613,17 @@ public class DCPU {
     public String dump() {
        return
                "A: " + String.format("0x%04X", (int) this.a) +
-                       "\nB: " + String.format("0x%04X", (int) this.b) +
-                       "\nC: " + String.format("0x%04X", (int) this.c) +
-                       "\nX: " + String.format("0x%04X", (int) this.x) +
-                       "\nY: " + String.format("0x%04X", (int) this.y) +
-                       "\nZ: " + String.format("0x%04X", (int) this.z) +
-                       "\nI: " + String.format("0x%04X", (int) this.i) +
-                       "\nJ: " + String.format("0x%04X", (int) this.j) +
-                       "\nSP: " + String.format("0x%04X", (int) this.sp) +
-                       "\nPC: " + String.format("0x%04X", (int) this.pc) +
-                       "\nEX: " + String.format("0x%04X", (int) this.ex) +
-                       "\nIA: " + String.format("0x%04X", (int) this.ia);
+               "\nB: " + String.format("0x%04X", (int) this.b) +
+               "\nC: " + String.format("0x%04X", (int) this.c) +
+               "\nX: " + String.format("0x%04X", (int) this.x) +
+               "\nY: " + String.format("0x%04X", (int) this.y) +
+               "\nZ: " + String.format("0x%04X", (int) this.z) +
+               "\nI: " + String.format("0x%04X", (int) this.i) +
+               "\nJ: " + String.format("0x%04X", (int) this.j) +
+               "\nSP: " + String.format("0x%04X", (int) this.sp) +
+               "\nPC: " + String.format("0x%04X", (int) this.pc) +
+               "\nEX: " + String.format("0x%04X", (int) this.ex) +
+               "\nIA: " + String.format("0x%04X", (int) this.ia);
     }
 
 

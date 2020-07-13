@@ -8,8 +8,10 @@ import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class Shader {
+
     private final int _shader;
-    public boolean good = false;
+    public boolean good;
+
     public Shader(int type, File file) throws IOException {
 
         _shader = GL33.glCreateShader(type);
@@ -24,6 +26,7 @@ public class Shader {
         GL33.glCompileShader(_shader);
 
         MemoryStack stack = null;
+        good = false;
         try {
             stack = MemoryStack.stackPush();
             IntBuffer buff = stack.mallocInt(1);

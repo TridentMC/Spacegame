@@ -7,13 +7,13 @@ public class TestCharQueue {
     private final CharQueue _queue = new CharQueue();
 
     @Test
-    void enqueueDequeue() {
+    void enqueueDequeue() throws OverCapacityException {
         _queue.enqueue('\uFF00');
         Assertions.assertEquals('\uFF00', _queue.dequeue());
     }
 
     @Test
-    void multipleQueues() {
+    void multipleQueues() throws OverCapacityException {
         _queue.enqueue('\u0100');
         _queue.enqueue('\uDEAD');
         _queue.enqueue('\uBEEF');
@@ -26,7 +26,7 @@ public class TestCharQueue {
     }
 
     @Test
-    void maxQueue() {
+    void maxQueue() throws OverCapacityException {
         for(int i = 0;i < 256;i++) {
             _queue.enqueue((char)i);
         }
@@ -42,8 +42,9 @@ public class TestCharQueue {
     void emptyDequeueFails() {
         Assertions.assertThrows(RuntimeException.class, () -> _queue.dequeue());
     }
+
     @Test
-    void fullEnqueueFails() {
+    void fullEnqueueFails() throws OverCapacityException {
         for(int i = 0;i < 256;i++) {
             _queue.enqueue((char)i);
         }

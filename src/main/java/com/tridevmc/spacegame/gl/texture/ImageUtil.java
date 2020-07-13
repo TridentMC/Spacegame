@@ -20,10 +20,6 @@ public class ImageUtil {
             this.width = width;
             this.height = height;
         }
-
-        public void destroy() {
-            STBImage.stbi_image_free(buf);
-        }
     }
 
     public static ImageBuffer loadImage(String file) {

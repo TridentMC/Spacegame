@@ -2,6 +2,7 @@ package com.tridevmc.spacegame.cpu.hardware;
 
 import com.tridevmc.spacegame.cpu.DCPU;
 import com.tridevmc.spacegame.gl.texture.ImageUtil;
+import org.joml.Vector3f;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -26,7 +27,7 @@ public class LEM1802 implements IHardware, I2DScreen {
     private char _vramIndex = 0x8000;
     private char _framIndex = 0x0000;
     private char _pramIndex = 0x0000;
-    private int _bootTimer = 60;
+    private int _bootTimer = 60*8;
     private int _blinkTimer = BLINK_TIMER_MAX;
     private boolean _blink = false;
     private boolean _bootDone = false;
@@ -209,6 +210,25 @@ public class LEM1802 implements IHardware, I2DScreen {
                 _screenBuffer[(y*PIXELS_X)+x] = 0;
             }
         }
+    }
+
+    public Vector3f getAverage() {
+        float r = 0.0f;
+        float g = 0.0f;
+        float b = 0.0f;
+
+        for (int y = 0; y < PIXELS_Y; y++) {
+            for (int x = 0; x < PIXELS_X; x++) {
+                int color = _screenBuffer[(y*PIXELS_X)+x];
+                int tr = color & 0xFF;
+                int tg = (color >> 8) & 0xFF;
+                int tb = (color >> 16) & 0xFF;
+                r += ((tr/255.0f) * (tr/255.0f));
+                g += ((tg/255.0f) * (tg/255.0f));
+                b += ((tb/255.0f) * (tb/255.0f));
+            }
+        }
+        return new Vector3f((float)Math.sqrt(r/(PIXELS_X*PIXELS_Y)), (float)Math.sqrt(g/(PIXELS_X*PIXELS_Y)), (float)Math.sqrt(b/(PIXELS_X*PIXELS_Y)));
     }
 
     @Override

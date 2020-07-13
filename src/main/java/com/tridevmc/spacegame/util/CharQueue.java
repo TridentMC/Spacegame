@@ -16,9 +16,9 @@ public class CharQueue {
         _store = new char[cap];
     }
 
-    public void enqueue(char value) {
+    public void enqueue(char value) throws OverCapacityException {
         if(++_len > _cap) {
-            throw new RuntimeException("Tried to enqueue more than "+_cap+" entries!!!");
+            throw new OverCapacityException("Tried to enqueue more than "+_cap+" entries!!!");
         }
         _store[_tail++] = value;
         if(_tail >= _cap) _tail = 0;

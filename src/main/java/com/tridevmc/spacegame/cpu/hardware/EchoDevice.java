@@ -5,6 +5,7 @@ import com.tridevmc.spacegame.cpu.DCPU;
 public class EchoDevice implements IHardware {
     private DCPU _origin;
     private char _msg = 0;
+
     @Override
     public void connect(DCPU origin) {
         _origin = origin;
