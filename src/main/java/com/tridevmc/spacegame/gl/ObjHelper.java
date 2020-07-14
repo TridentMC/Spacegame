@@ -6,7 +6,7 @@ import org.lwjgl.BufferUtils;
 
 import java.nio.FloatBuffer;
 
-public class ObjHelper {
+public final class ObjHelper {
     public static FloatBuffer getVerticiesAndNormals(ReadableObj obj) {
         FloatBuffer e = BufferUtils.createFloatBuffer(obj.getNumVertices() * 3 + obj.getNumNormals() * 3);
         for(int i =0;i < obj.getNumVertices();i++) {

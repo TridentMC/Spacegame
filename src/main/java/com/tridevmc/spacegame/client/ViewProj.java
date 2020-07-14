@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.client.camera;
+package com.tridevmc.spacegame.client;
 
 import org.joml.Matrix4f;
 

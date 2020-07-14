@@ -22,7 +22,7 @@ public class TestCharQueue {
         Assertions.assertEquals('\uDEAD', _queue.dequeue());
         Assertions.assertEquals('\uBEEF', _queue.dequeue());
         Assertions.assertEquals('\uCAFE', _queue.dequeue());
-        Assertions.assertThrows(RuntimeException.class, () -> _queue.dequeue());
+        Assertions.assertThrows(RuntimeException.class, _queue::dequeue);
     }
 
     @Test
@@ -35,12 +35,12 @@ public class TestCharQueue {
         }
         _queue.enqueue('\uDEAD');
         Assertions.assertEquals('\uDEAD', _queue.dequeue());
-        Assertions.assertThrows(RuntimeException.class, () -> _queue.dequeue());
+        Assertions.assertThrows(RuntimeException.class, _queue::dequeue);
     }
 
     @Test
     void emptyDequeueFails() {
-        Assertions.assertThrows(RuntimeException.class, () -> _queue.dequeue());
+        Assertions.assertThrows(RuntimeException.class, _queue::dequeue);
     }
 
     @Test

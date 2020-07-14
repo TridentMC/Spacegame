@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-public class ImageUtil {
+public final class ImageUtil {
     public static class ImageBuffer {
         public ByteBuffer buf;
         public int width;
@@ -23,7 +23,7 @@ public class ImageUtil {
     }
 
     public static ImageBuffer loadImage(String file) {
-        MemoryStack stack = null;
+        MemoryStack stack;
         ByteBuffer img;
         InputStream stream = ImageUtil.class.getResourceAsStream(file);
 

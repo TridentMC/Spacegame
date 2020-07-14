@@ -1,9 +1,8 @@
 package com.tridevmc.spacegame.cpu.hardware.backend;
 
-import com.tridevmc.spacegame.client.camera.ViewProj;
+import com.tridevmc.spacegame.client.ViewProj;
 import com.tridevmc.spacegame.cpu.hardware.I2DScreen;
 import com.tridevmc.spacegame.gl.shader.AttributeType;
-import com.tridevmc.spacegame.gl.shader.Shader;
 import com.tridevmc.spacegame.gl.shader.ShaderProgram;
 import com.tridevmc.spacegame.gl.shader.UniformType;
 import org.joml.Matrix4f;

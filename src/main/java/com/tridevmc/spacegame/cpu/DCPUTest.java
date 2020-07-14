@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL33;
 import org.tinylog.Logger;
 
-public class DCPUTest {
+public final class DCPUTest {
 
     private static Window _window;
     private static DCPU _cpu;

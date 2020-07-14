@@ -17,6 +17,9 @@ public class Shader {
         _shader = GL33.glCreateShader(type);
 
         InputStream stream = getClass().getClassLoader().getResourceAsStream(file.getPath());
+        if(stream == null) {
+            throw new IOException("Unable to read '" + file.getPath() + "' from resources!");
+        }
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
         StringBuilder text = new StringBuilder();
         while(reader.ready()) {

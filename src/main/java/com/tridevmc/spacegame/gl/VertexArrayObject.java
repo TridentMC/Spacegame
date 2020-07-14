@@ -12,19 +12,29 @@ public class VertexArrayObject {
     private final int _vbo;
     private final int _ebo;
     private int _elementCount;
+    private boolean _vertexesConfigured = false;
 
-    public VertexArrayObject(ShaderProgram s) {
+    public VertexArrayObject() {
         _vao = GL33.glGenVertexArrays();
         GL33.glBindVertexArray(_vao);
         _vbo = GL33.glGenBuffers();
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, _vbo);
         _ebo = GL33.glGenBuffers();
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, _ebo);
+    }
 
+    public void setupAttributes(ShaderProgram s) {
+        if(_vertexesConfigured)
+            return;
         s.use();
 
         s.setupAttribute(AttributeType.VERTEX);
         s.setupAttribute(AttributeType.NORMAL);
+        _vertexesConfigured = true;
+    }
+
+    public boolean isConfigured() {
+        return _vertexesConfigured;
     }
 
     public void bind(FloatBuffer vertexBuffer, IntBuffer elementBuffer, int elementCount) {
@@ -36,10 +46,13 @@ public class VertexArrayObject {
         _elementCount = elementCount;
     }
 
-    public void render() {
+    public void render(ShaderProgram shader) {
         GL33.glBindVertexArray(_vao);
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, _vbo);
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, _ebo);
+
+        if(!_vertexesConfigured)
+            setupAttributes(shader);
 
         GL33.glDrawElements(GL33.GL_TRIANGLES, _elementCount, GL33.GL_UNSIGNED_INT, 0);
     }

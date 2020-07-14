@@ -16,7 +16,10 @@ public class ResourceLocation {
 
     @Override
     public boolean equals(Object obj) {
-        return toString().equals(obj.toString());
+        if(obj instanceof ResourceLocation) {
+            return toString().equals(obj.toString());
+        }
+        return false;
     }
 
     public int hashCode() {

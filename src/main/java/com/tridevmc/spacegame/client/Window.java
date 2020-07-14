@@ -14,7 +14,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Window {
     public final long window;
-    public static final boolean[] keyStates = new boolean[GLFW.GLFW_KEY_LAST+1];
+    public static final boolean[] KEY_STATES = new boolean[GLFW.GLFW_KEY_LAST+1];
     private int _fWidth;
     private int _fHeight;
     private boolean _focused = false;
@@ -53,6 +53,10 @@ public class Window {
             // Get the resolution of the primary monitor
             GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
 
+            if(vidmode == null) {
+                throw new RuntimeException("Couldn't get vidmode!");
+            }
+
             // Center the window
             GLFW.glfwSetWindowPos(
                    window,
@@ -68,7 +72,7 @@ public class Window {
 
         GLFW.glfwSetKeyCallback(window, (long window, int key, int scancode, int action, int mods) -> {
             if (key > 0)
-                keyStates[key] = (action != GLFW.GLFW_RELEASE);
+                KEY_STATES[key] = (action != GLFW.GLFW_RELEASE);
         });
 
         GLFW.glfwSetWindowFocusCallback(window, (long window, boolean focused) -> {

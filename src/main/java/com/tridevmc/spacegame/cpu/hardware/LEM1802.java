@@ -148,7 +148,7 @@ public class LEM1802 implements IHardware, I2DScreen {
 
                         // Each character is 2 words long, so all our indexing has to be done
                         // in multiples of two. We add `plane` to get the other word of the character.
-                        int bit = 0;
+                        int bit;
                         if (_framIndex != 0x0000) {
                             bit = _origin.ram[_framIndex + (chrY * CHAR_COL * 2) + (chrX * 2) + plane];
                         } else {
@@ -187,7 +187,7 @@ public class LEM1802 implements IHardware, I2DScreen {
     }
 
     private int fromPaletteEntry(int entry) {
-        int val = 0;
+        int val;
         if(_pramIndex != 0x0000) {
             val = _origin.ram[_pramIndex + entry];
         } else {

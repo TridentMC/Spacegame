@@ -1,8 +1,8 @@
 package com.tridevmc.spacegame;
 
 import com.tridevmc.spacegame.client.Window;
-import com.tridevmc.spacegame.client.camera.Camera;
-import com.tridevmc.spacegame.client.camera.ViewProj;
+import com.tridevmc.spacegame.client.Camera;
+import com.tridevmc.spacegame.client.ViewProj;
 import com.tridevmc.spacegame.cpu.DCPU;
 import com.tridevmc.spacegame.cpu.hardware.EchoDevice;
 import com.tridevmc.spacegame.cpu.hardware.LEM1802;
@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SpaceGame {
+public final class SpaceGame {
     private static Window w;
 
     private static StaticObject object;
@@ -37,9 +37,9 @@ public class SpaceGame {
 
     public static final Camera c = new Camera();
 
-    static ShaderProgram world;
-    static ShaderProgram screen;
-    static ShaderProgram def;
+    private static ShaderProgram world;
+    private static ShaderProgram screen;
+    private static ShaderProgram def;
 
     public static void main(String[] args) {
         try {
@@ -72,8 +72,8 @@ public class SpaceGame {
         def.registerAttribute(AttributeType.VERTEX, 2, GL33.GL_FLOAT, "position");
         def.registerAttribute(AttributeType.TEXCOORD, 2, GL33.GL_FLOAT, "texCoord");
 
-        Mesh.registerMesh(new ResourceLocation("spacegame", "testmesh"), world);
-        Mesh.registerMesh(new ResourceLocation("spacegame", "cube"), world);
+        Mesh.registerMesh(new ResourceLocation("spacegame", "testmesh"));
+        Mesh.registerMesh(new ResourceLocation("spacegame", "cube"));
     }
 
     private static int loadRom(DCPU cpu, int ...args) {
@@ -99,7 +99,7 @@ public class SpaceGame {
         return a;
     }
 
-    public static void run() throws IOException {
+    public static void run() {
 
         cpu = new DCPU();
         mon = new LEM1802();
@@ -127,7 +127,7 @@ public class SpaceGame {
 
             GLFW.glfwPollEvents();
 
-            c.updatePosition(1/60.0, Window.keyStates);
+            c.updatePosition(1/60.0, Window.KEY_STATES);
 
             update(max);
             render();

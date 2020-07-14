@@ -1,10 +1,9 @@
 package com.tridevmc.spacegame.cpu.hardware.backend;
 
-import com.tridevmc.spacegame.client.camera.ViewProj;
+import com.tridevmc.spacegame.client.ViewProj;
 import com.tridevmc.spacegame.cpu.hardware.I2DScreen;
 import com.tridevmc.spacegame.gl.shader.AttributeType;
 import com.tridevmc.spacegame.gl.shader.ShaderProgram;
-import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL33;
 

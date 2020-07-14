@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.client.camera;
+package com.tridevmc.spacegame.client;
 
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -12,26 +12,26 @@ public class Camera {
     private double _yaw = 0.0;
     private double _pitch = 0.0;
 
-    private double mlastX = 400.0;
-    private double mlastY = 300.0;
+    private double _mlastX = 400.0;
+    private double _mlastY = 300.0;
 
     private Matrix4f lastView;
     private Matrix4f lastProj;
 
     private static final double _SENSITIVITY = 0.05;
 
-    public static final int fov = 90;
+    public static final int FOV = 90;
 
     public void resetMouse() {
-        mlastX = 400;
-        mlastY = 300;
+        _mlastX = 400;
+        _mlastY = 300;
     }
 
     public void updateCameraRotation(double x, double y) {
-        double xOffset = x - mlastX;
-        double yOffset = y - mlastY;
-        mlastX = x;
-        mlastY = y;
+        double xOffset = x - _mlastX;
+        double yOffset = y - _mlastY;
+        _mlastX = x;
+        _mlastY = y;
 
         xOffset *= _SENSITIVITY;
         yOffset *= _SENSITIVITY;
@@ -70,7 +70,7 @@ public class Camera {
                         new Vector3f(_pos.x + _front.x, _pos.y + _front.y, _pos.z + _front.z),
                         _up);
         lastProj = new Matrix4f()
-                .perspective((float)Math.toRadians(fov),800.0f/600.0f,1.0f,renderDistance);
+                .perspective((float)Math.toRadians(FOV),800.0f/600.0f,1.0f,renderDistance);
         return new ViewProj(lastView, lastProj);
     }
 
