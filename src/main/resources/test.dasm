@@ -1,0 +1,66 @@
+    SET A, 0
+    SET B, 0x8000
+    HWI 0
+    SET PUSH, A
+    SET A, 0x0009
+    SHL A, 8
+    BOR A, 0x20
+    SET PUSH, A
+    SET PUSH, B
+    SET PUSH, C
+    SET B, 0x180
+    SET C, 0x8000
+	SET PUSH, I
+    SET PUSH, J
+
+	SET I, C
+	AND I,0x1f
+	SET J,0x20
+	SUB J, I
+	SUB B,J
+	MUL J,2
+	ADD J,loop
+	SET PC,J
+
+:next
+	ADD B, 0x20
+	ADD I, 0x20
+
+:loop ; labels are pure pain
+    SET [0x0+b], A
+	SET [0x1+b], A
+	SET [0x2+b], A
+	SET [0x3+b], A
+	SET [0x4+b], A
+	SET [0x5+b], A
+	SET [0x6+b], A
+	SET [0x7+b], A
+	SET [0x8+b], A
+	SET [0x9+b], A
+	SET [0xa+b], A
+	SET [0xb+b], A
+	SET [0xc+b], A
+	SET [0xd+b], A
+	SET [0xe+b], A
+	SET [0xf+b], A
+	SET [0x10+b], A
+	SET [0x11+b], A
+	SET [0x12+b], A
+	SET [0x13+b], A
+	SET [0x14+b], A
+	SET [0x15+b], A
+	SET [0x16+b], A
+	SET [0x17+b], A
+	SET [0x18+b], A
+	SET [0x19+b], A
+	SET [0x1a+b], A
+	SET [0x1b+b], A
+	SET [0x1c+b], A
+	SET [0x1d+b], A
+	SET [0x1e+b], A
+	SET [0x1f+b], A
+	IFN I, C
+		SET PC, next
+
+	SET J, POP
+    SET I, POP
