@@ -5,5 +5,8 @@ public enum UniformType {
     VIEW,
     PROJ,
     LIGHT_POS,
-    LIGHT_COL
+    LIGHT_COL,
+    SAMPLER0,
+    SAMPLER1,
+    SAMPLER2
 }

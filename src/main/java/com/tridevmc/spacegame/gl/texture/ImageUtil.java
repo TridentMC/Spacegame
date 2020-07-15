@@ -45,11 +45,9 @@ public final class ImageUtil {
                 offset += total;
             }
 
-
             if (offset < bytes.length) {
                 throw new IOException("Could not completely read font file");
             }
-
 
             stream.close();
             ByteBuffer buf = BufferUtils.createByteBuffer(bytes.length);

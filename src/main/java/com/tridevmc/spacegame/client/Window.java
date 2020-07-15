@@ -6,6 +6,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
@@ -44,11 +45,16 @@ public class Window {
         try ( MemoryStack stack = MemoryStack.stackPush() ) {
             IntBuffer pWidth = stack.mallocInt(1);
             IntBuffer pHeight = stack.mallocInt(1);
+            IntBuffer pFWidth = stack.mallocInt(1);
+            IntBuffer pFHeight = stack.mallocInt(1);
 
             GLFW.glfwGetWindowSize(window, pWidth, pHeight);
+            GLFW.glfwGetFramebufferSize(window, pFWidth, pFHeight);
 
             _width = pWidth.get();
             _height = pHeight.get();
+            _fWidth = pFWidth.get();
+            _fHeight = pFHeight.get();
 
             // Get the resolution of the primary monitor
             GLFWVidMode vidmode = GLFW.glfwGetVideoMode(GLFW.glfwGetPrimaryMonitor());
@@ -104,6 +110,7 @@ public class Window {
         GLFW.glfwSetFramebufferSizeCallback(window, (long window, int width, int height) -> {
             _fWidth = width;
             _fHeight = height;
+            GL33.glViewport(0, 0, width, height);
         });
 
         GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
@@ -111,6 +118,22 @@ public class Window {
         GLFW.glfwShowWindow(window);
 
         GL.createCapabilities();
+    }
+
+    public int width() {
+        return _width;
+    }
+
+    public int height() {
+        return _height;
+    }
+
+    public int fWidth() {
+        return _fWidth;
+    }
+
+    public int fHeight() {
+        return _fHeight;
     }
 
     public void destroy() {

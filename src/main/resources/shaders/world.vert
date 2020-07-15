@@ -1,8 +1,9 @@
-#version 150 core
+#version 330 core
 
 in vec3 position;
 in vec3 normal;
-out vec3 Pos;
+
+out vec2 TexCoords;
 out vec3 Normal;
 out vec3 FragPos;
 
@@ -12,8 +13,10 @@ uniform mat4 proj;
 
 void main()
 {
-    Pos = position;
+    vec4 worldPos = model * vec4(position, 1.0);
+    TexCoords = vec2(0.0, 0.0);
     Normal = mat3(transpose(inverse(model))) * normal;
-    FragPos = vec3(model * vec4(position, 1.0));
-    gl_Position = proj * view * model * vec4(position, 1.0);
+    FragPos = worldPos.xyz;
+
+    gl_Position = proj * view * worldPos;
 }

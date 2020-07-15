@@ -1,6 +1,7 @@
 package com.tridevmc.spacegame.gl.shader;
 
 import com.tridevmc.spacegame.util.ResourceLocation;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL33;
 
 import java.io.File;
@@ -15,6 +16,7 @@ public class ShaderProgram {
     private int _totalAttributeSize = 0;
     private final Map<AttributeType, AttributeBinding> _attributes = new HashMap<>();
     private static final Map<ResourceLocation, ShaderProgram> _shaderMap = new HashMap<>();
+    private static final float[] threefvBuffer = new float[3];
 
     public ShaderProgram(ResourceLocation location) throws IOException {
         this(location,
@@ -63,6 +65,23 @@ public class ShaderProgram {
         } else if(buffer.limit() == 3) {
             GL33.glUniform3fv(_uniforms.get(type), buffer);
         }
+    }
+
+    public void setUniform(UniformType type, Vector3f v) {
+        if(!_uniforms.containsKey(type)) {
+            throw new RuntimeException("Shader doesn't have the '" + type.toString() + "' uniform location!");
+        }
+        threefvBuffer[0] = v.x;
+        threefvBuffer[1] = v.y;
+        threefvBuffer[2] = v.z;
+        GL33.glUniform3fv(_uniforms.get(type), threefvBuffer);
+    }
+
+    public void setUniform(UniformType type, int val) {
+        if(!_uniforms.containsKey(type)) {
+            throw new RuntimeException("Shader doesn't have the '" + type.toString() + "' uniform location!");
+        }
+        GL33.glUniform1i(_uniforms.get(type), val);
     }
 
     public void setupAttribute(AttributeType type) {
