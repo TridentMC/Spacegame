@@ -7,48 +7,48 @@ public class TestCharQueue {
     private final CharQueue _queue = new CharQueue();
 
     @Test
-    void enqueueDequeue() throws OverCapacityException {
-        _queue.enqueue('\uFF00');
-        Assertions.assertEquals('\uFF00', _queue.dequeue());
+    void enqueueDequeue() {
+        _queue.add('\uFF00');
+        Assertions.assertEquals('\uFF00', _queue.remove());
     }
 
     @Test
-    void multipleQueues() throws OverCapacityException {
-        _queue.enqueue('\u0100');
-        _queue.enqueue('\uDEAD');
-        _queue.enqueue('\uBEEF');
-        Assertions.assertEquals('\u0100', _queue.dequeue());
-        _queue.enqueue('\uCAFE');
-        Assertions.assertEquals('\uDEAD', _queue.dequeue());
-        Assertions.assertEquals('\uBEEF', _queue.dequeue());
-        Assertions.assertEquals('\uCAFE', _queue.dequeue());
-        Assertions.assertThrows(RuntimeException.class, _queue::dequeue);
+    void multipleQueues() {
+        _queue.add('\u0100');
+        _queue.add('\uDEAD');
+        _queue.add('\uBEEF');
+        Assertions.assertEquals('\u0100', _queue.remove());
+        _queue.add('\uCAFE');
+        Assertions.assertEquals('\uDEAD', _queue.remove());
+        Assertions.assertEquals('\uBEEF', _queue.remove());
+        Assertions.assertEquals('\uCAFE', _queue.remove());
+        Assertions.assertThrows(RuntimeException.class, _queue::remove);
     }
 
     @Test
-    void maxQueue() throws OverCapacityException {
+    void maxQueue() {
         for(int i = 0;i < 256;i++) {
-            _queue.enqueue((char)i);
+            _queue.add((char)i);
         }
         for(int j = 0;j < 256;j++) {
-            Assertions.assertEquals((char)j, _queue.dequeue());
+            Assertions.assertEquals((char)j, _queue.remove());
         }
-        _queue.enqueue('\uDEAD');
-        Assertions.assertEquals('\uDEAD', _queue.dequeue());
-        Assertions.assertThrows(RuntimeException.class, _queue::dequeue);
+        _queue.add('\uDEAD');
+        Assertions.assertEquals('\uDEAD', _queue.remove());
+        Assertions.assertThrows(RuntimeException.class, _queue::remove);
     }
 
     @Test
     void emptyDequeueFails() {
-        Assertions.assertThrows(RuntimeException.class, _queue::dequeue);
+        Assertions.assertThrows(RuntimeException.class, _queue::remove);
     }
 
     @Test
-    void fullEnqueueFails() throws OverCapacityException {
+    void fullEnqueueFails() {
         for(int i = 0;i < 256;i++) {
-            _queue.enqueue((char)i);
+            _queue.add((char)i);
         }
-        Assertions.assertThrows(RuntimeException.class, () -> _queue.enqueue('\uFF00'));
+        Assertions.assertThrows(RuntimeException.class, () -> _queue.add('\uFF00'));
     }
     
 }

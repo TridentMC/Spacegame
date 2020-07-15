@@ -3,7 +3,6 @@ package com.tridevmc.spacegame.cpu;
 import com.tridevmc.spacegame.cpu.hardware.HardwareList;
 import com.tridevmc.spacegame.cpu.hardware.IHardware;
 import com.tridevmc.spacegame.util.CharQueue;
-import com.tridevmc.spacegame.util.OverCapacityException;
 import org.tinylog.Logger;
 
 import java.util.ArrayList;
@@ -397,8 +396,8 @@ public class DCPU {
 
     public void interrupt(char msg) {
         try {
-            _interruptQueue.enqueue(msg);
-        } catch (OverCapacityException e) {
+            _interruptQueue.add(msg);
+        } catch (IllegalStateException e) {
             Logger.error("DCPU-16 has caught fire...");
             halt = true;
         }
@@ -430,7 +429,7 @@ public class DCPU {
             _ops.get(opcode).accept(a, b);
 
             if (!_queueing && _interruptQueue.size() != 0) {
-                processInterrupt(_interruptQueue.dequeue());
+                processInterrupt(_interruptQueue.remove());
             }
         }
         this.cycles = 0;

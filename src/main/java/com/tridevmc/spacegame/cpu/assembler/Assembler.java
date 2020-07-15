@@ -3,10 +3,11 @@ package com.tridevmc.spacegame.cpu.assembler;
 import com.tridevmc.spacegame.util.Result;
 import org.tinylog.Logger;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

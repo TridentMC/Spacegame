@@ -21,30 +21,30 @@ import java.util.Map;
 public class Mesh {
     private static final Map<ResourceLocation, Mesh> _meshCache = new HashMap<>();
     private final VertexArrayObject _vao;
-    private final ResourceLocation _name;
+    private final ResourceLocation _location;
 
-    public static void registerMesh(ResourceLocation name) throws IOException {
-        Mesh _mesh = new Mesh(name, "/"+name.getName()+".obj");
-        _meshCache.put(name, _mesh);
+    public static void registerMesh(ResourceLocation location) throws IOException {
+        Mesh _mesh = new Mesh(location, "/"+location.name()+".obj");
+        _meshCache.put(location, _mesh);
     }
 
-    public static Mesh getMesh(ResourceLocation name) {
-        if(!_meshCache.containsKey(name)) {
+    public static Mesh getMesh(ResourceLocation location) {
+        if(!_meshCache.containsKey(location)) {
             try {
-                registerMesh(name);
+                registerMesh(location);
             } catch(IOException e) {
                 Logger.error("Tried to getMesh but encountered IOException!");
                 Logger.error(e);
             }
         }
-        return _meshCache.get(name);
+        return _meshCache.get(location);
     }
 
-    private Mesh(ResourceLocation name, String location) throws IOException {
-        _name = name;
+    private Mesh(ResourceLocation location, String file) throws IOException {
+        _location = location;
         _vao = new VertexArrayObject();
 
-        Obj _obj = ObjReader.read(SpaceGame.class.getResourceAsStream(location));
+        Obj _obj = ObjReader.read(SpaceGame.class.getResourceAsStream(file));
         _obj = ObjUtils.convertToRenderable(_obj);
 
         _vao.bind(ObjHelper.getVerticiesAndNormals(_obj), ObjData.getFaceVertexIndices(_obj), ObjData.getTotalNumFaceVertices(_obj));

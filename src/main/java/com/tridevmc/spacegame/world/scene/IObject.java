@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.world;
+package com.tridevmc.spacegame.world.scene;
 
 import com.tridevmc.spacegame.gl.shader.ShaderProgram;
 

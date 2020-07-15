@@ -16,13 +16,13 @@ public class ShaderProgram {
     private final Map<AttributeType, AttributeBinding> _attributes = new HashMap<>();
     private static final Map<ResourceLocation, ShaderProgram> _shaderMap = new HashMap<>();
 
-    public ShaderProgram(ResourceLocation name) throws IOException {
-        this(name,
-                new VertexShader(new File("shaders", name.getName()+".vert")),
-                new FragmentShader(new File("shaders", name.getName()+".frag")));
+    public ShaderProgram(ResourceLocation location) throws IOException {
+        this(location,
+                new VertexShader(new File("shaders", location.name()+".vert")),
+                new FragmentShader(new File("shaders", location.name()+".frag")));
     }
 
-    public ShaderProgram(ResourceLocation name, VertexShader vertexShader, FragmentShader fragmentShader) {
+    public ShaderProgram(ResourceLocation location, VertexShader vertexShader, FragmentShader fragmentShader) {
         _program = GL33.glCreateProgram();
 
         GL33.glAttachShader(_program, vertexShader.getShader());
@@ -31,15 +31,15 @@ public class ShaderProgram {
         GL33.glBindFragDataLocation(_program, 0, "outColor");
         GL33.glLinkProgram(_program);
 
-        _shaderMap.put(name, this);
+        _shaderMap.put(location, this);
 
         use();
     }
 
-    public void registerUniform(UniformType type, String location) {
+    public void registerUniform(UniformType type, String name) {
         if(_uniforms.containsKey(type))
             return; // silently ignore
-        int uniform = GL33.glGetUniformLocation(this._program, location);
+        int uniform = GL33.glGetUniformLocation(this._program, name);
         _uniforms.put(type, uniform);
     }
 
