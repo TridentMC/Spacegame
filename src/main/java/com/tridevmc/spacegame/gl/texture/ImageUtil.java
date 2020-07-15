@@ -15,10 +15,15 @@ public final class ImageUtil {
         public int width;
         public int height;
 
-        public ImageBuffer(ByteBuffer buf, int width, int height) {
+        private ImageBuffer(ByteBuffer buf, int width, int height) {
             this.buf = buf;
             this.width = width;
             this.height = height;
+        }
+
+        public void destroy() {
+            buf.position(0);
+            STBImage.stbi_image_free(buf);
         }
     }
 

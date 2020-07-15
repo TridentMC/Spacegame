@@ -55,6 +55,8 @@ public class LEM1802 implements IHardware, I2DScreen {
                 }
             }
 
+            font.destroy();
+
             ImageUtil.ImageBuffer boot = ImageUtil.loadImage("/texture/real_boot.png");
 
             for (int y = 0; y < boot.height; y++) {
@@ -62,6 +64,8 @@ public class LEM1802 implements IHardware, I2DScreen {
                     _screenBuffer[(y*boot.width)+x] = boot.buf.getInt();
                 }
             }
+
+            boot.destroy();
         }
     }
 
