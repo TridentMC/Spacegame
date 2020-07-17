@@ -2,23 +2,21 @@ package com.tridevmc.spacegame;
 
 import com.tridevmc.spacegame.client.Window;
 import com.tridevmc.spacegame.client.Camera;
-import com.tridevmc.spacegame.client.ViewProj;
+import com.tridevmc.spacegame.client.ViewProjection;
 import com.tridevmc.spacegame.cpu.DCPU;
 import com.tridevmc.spacegame.cpu.hardware.EchoDevice;
 import com.tridevmc.spacegame.cpu.hardware.LEM1802;
 import com.tridevmc.spacegame.cpu.hardware.backend.GLWorldScreenRenderer;
 import com.tridevmc.spacegame.cpu.hardware.backend.IScreenRenderer;
-import com.tridevmc.spacegame.world.scene.Mesh;
+import com.tridevmc.spacegame.world.scene.object.Mesh;
 import com.tridevmc.spacegame.gl.shader.*;
 import com.tridevmc.spacegame.util.ResourceLocation;
-import com.tridevmc.spacegame.world.scene.StaticObject;
+import com.tridevmc.spacegame.world.scene.Scene;
+import com.tridevmc.spacegame.world.scene.object.StaticObject;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL33;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.tinylog.Logger;
 
@@ -42,8 +40,6 @@ public final class SpaceGame {
 
     private static ShaderProgram world;
     private static ShaderProgram screen;
-    private static ShaderProgram def;
-    private static ShaderProgram lighting;
 
     private static int gBuffer;
     private static int gPosition;
@@ -53,6 +49,8 @@ public final class SpaceGame {
 
     private static int screenVao;
     private static int screenVbo;
+
+    private static Scene scene;
 
     private static final float[] VERTS = {
             -1.0f, 1.0f, 0.0f, 1.0f,
@@ -91,18 +89,28 @@ public final class SpaceGame {
         screen.registerUniform(UniformType.MODEL, "model");
         screen.registerUniform(UniformType.VIEW, "view");
         screen.registerUniform(UniformType.PROJ, "proj");
-        def = new ShaderProgram(new ResourceLocation("spacegame", "default"));
+
+        ShaderProgram def = new ShaderProgram(new ResourceLocation("spacegame", "default"));
         def.registerAttribute(AttributeType.VERTEX, 2, GL33.GL_FLOAT, "position");
         def.registerAttribute(AttributeType.TEXCOORD, 2, GL33.GL_FLOAT, "texCoord");
 
-        lighting = new ShaderProgram(new ResourceLocation("spacegame", "lighting"));
-        lighting.registerAttribute(AttributeType.VERTEX, 2, GL33.GL_FLOAT, "position");
-        lighting.registerAttribute(AttributeType.TEXCOORD, 2, GL33.GL_FLOAT, "texCoords");
-        lighting.registerUniform(UniformType.SAMPLER0, "gPosition");
-        lighting.registerUniform(UniformType.SAMPLER1, "gNormal");
-        lighting.registerUniform(UniformType.SAMPLER2, "gAlbedo");
-        lighting.registerUniform(UniformType.LIGHT_POS, "lightPos");
-        lighting.registerUniform(UniformType.LIGHT_COL, "lightCol");
+        ShaderProgram point = new ShaderProgram(new ResourceLocation("spacegame", "point_pass"));
+        point.registerAttribute(AttributeType.VERTEX, 3, GL33.GL_FLOAT, "position");
+        point.registerUniform(UniformType.MODEL, "model");
+        point.registerUniform(UniformType.VIEW, "view");
+        point.registerUniform(UniformType.PROJ, "proj");
+        point.registerUniform(UniformType.SAMPLER0, "gPosition");
+        point.registerUniform(UniformType.SAMPLER1, "gNormal");
+        point.registerUniform(UniformType.SAMPLER2, "gAlbedo");
+        point.registerUniform(UniformType.LIGHT_POS, "lightPos");
+        point.registerUniform(UniformType.LIGHT_COL, "lightCol");
+        point.registerUniform(UniformType.LIGHT_ATTENUATION, "lightAtten");
+        point.registerUniform(UniformType.SCREEN_SIZE, "gScreenSize");
+        point.setUniform(UniformType.SAMPLER0, 0);
+        point.setUniform(UniformType.SAMPLER1, 1);
+        point.setUniform(UniformType.SAMPLER2, 2);
+        point.setUniform(UniformType.SCREEN_SIZE, new Vector3f(w.fWidth(), w.fHeight(), 0.0f));
+
         Mesh.registerMesh(new ResourceLocation("spacegame", "testmesh"));
         Mesh.registerMesh(new ResourceLocation("spacegame", "cube"));
     }
@@ -161,19 +169,7 @@ public final class SpaceGame {
 
         GL33.glBindFramebuffer(GL33.GL_FRAMEBUFFER, 0);
 
-        lighting.use();
-
-        screenVao = GL33.glGenVertexArrays();
-        GL33.glBindVertexArray(screenVao);
-        screenVbo = GL33.glGenBuffers();
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, screenVbo);
-        lighting.setupAttribute(AttributeType.VERTEX);
-        lighting.setupAttribute(AttributeType.TEXCOORD);
-        GL33.glBufferData(GL33.GL_ARRAY_BUFFER, VERTS, GL33.GL_STATIC_DRAW);
-
-        lighting.setUniform(UniformType.SAMPLER0, 0);
-        lighting.setUniform(UniformType.SAMPLER1, 1);
-        lighting.setUniform(UniformType.SAMPLER2, 2);
+        scene = new Scene();
 
         cpu = new DCPU();
         mon = new LEM1802();
@@ -185,7 +181,7 @@ public final class SpaceGame {
         monren = new GLWorldScreenRenderer();
         monren.init(screen, mon);
 
-        int max = loadRom(cpu, new File("/fonttest.bin"));
+        int max = loadRom(cpu, new File("/bin/fonttest.bin"));
 
         GL33.glEnable(GL33.GL_DEPTH_TEST);
         GL33.glEnable(GL33.GL_CULL_FACE);
@@ -195,6 +191,9 @@ public final class SpaceGame {
         object = new StaticObject(new ResourceLocation("spacegame", "testmesh"), 2.0f, new Quaternionf(), new Vector3f(0.0f, 0.0f, 0.0f));
         deux = new StaticObject(new ResourceLocation("spacegame", "cube"), 1.0f, new Quaternionf(), new Vector3f(0.0f, 0.0f, -0.001f));
         trois = new StaticObject(new ResourceLocation("spacegame", "testmesh"), 2.0f, new Quaternionf(), new Vector3f(-20.0f, 0.0f, 0.0f));
+
+        scene.addObject(object);
+        scene.addObject(deux);
         GL33.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
         while ( !GLFW.glfwWindowShouldClose(w.window) ) {
@@ -212,16 +211,18 @@ public final class SpaceGame {
 
     private static void update(int max) {
         if(cpu.pc != max) {
-            cpu.eval(10000/60);
+            cpu.eval(1000/60);
         }
 
         cpu.hardwareList.updateAll();
 
-        trois.getTransform().rotate(0.0f, 1.0f, 0.0f, (float)(0.1f*Math.PI/180.0f));
+        scene.update();
     }
 
     private static void render() {
-        ViewProj proj = c.generateViewProj(128.0f);
+        ViewProjection proj = c.generateViewProjection(128.0f);
+
+        // Geometry Pass
 
         GL33.glBindFramebuffer(GL33.GL_FRAMEBUFFER, 1);
         GL33.glClear(GL33.GL_COLOR_BUFFER_BIT | GL33.GL_DEPTH_BUFFER_BIT);
@@ -230,21 +231,9 @@ public final class SpaceGame {
         GL33.glEnable(GL33.GL_DEPTH_TEST);
         GL33.glDisable(GL33.GL_BLEND);
 
-        world.use();
+        scene.geometryPass(proj);
 
-        MemoryStack stack = null;
-        try {
-            stack = MemoryStack.stackPush();
-            world.setUniform(UniformType.VIEW, proj.view.get(stack.mallocFloat(16)));
-            world.setUniform(UniformType.PROJ, proj.proj.get(stack.mallocFloat(16)));
-        } finally {
-            assert stack != null;
-            stack.pop();
-        }
-
-        object.render(world);
-        deux.render(world);
-        trois.render(world);
+        // Lighting Pass
 
         GL33.glDisable(GL33.GL_DEPTH_TEST);
 
@@ -253,8 +242,6 @@ public final class SpaceGame {
         GL33.glBlendFunc(GL33.GL_ONE, GL33.GL_ONE);
 
         GL33.glBindFramebuffer(GL33.GL_FRAMEBUFFER, 0);
-
-        lighting.use();
 
         GL33.glActiveTexture(GL33.GL_TEXTURE0);
         GL33.glBindTexture(GL33.GL_TEXTURE_2D, gPosition);
@@ -265,26 +252,12 @@ public final class SpaceGame {
 
         GL33.glClear(GL33.GL_COLOR_BUFFER_BIT | GL33.GL_DEPTH_BUFFER_BIT);
 
-        lighting.setUniform(UniformType.LIGHT_POS, new Vector3f(0.0f, -2.0f, 1.0f));
-        lighting.setUniform(UniformType.LIGHT_COL, new Vector3f(0.0f, 1.0f, 0.0f));
+        scene.lightingPass(proj);
 
-        GL33.glBindVertexArray(screenVao);
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, screenVbo);
-        GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, 6);
+        // Forward Pass
 
-        lighting.setUniform(UniformType.LIGHT_POS, new Vector3f(-0.5f, -2.0f, 0.0f));
-        lighting.setUniform(UniformType.LIGHT_COL, new Vector3f(1.0f, 0.0f, 0.0f));
-
-        GL33.glBindVertexArray(screenVao);
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, screenVbo);
-        GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, 6);
-
-        lighting.setUniform(UniformType.LIGHT_POS, new Vector3f(0.5f, -2.0f, 0.0f));
-        lighting.setUniform(UniformType.LIGHT_COL, new Vector3f(0.0f, 0.0f, 1.0f));
-
-        GL33.glBindVertexArray(screenVao);
-        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, screenVbo);
-        GL33.glDrawArrays(GL33.GL_TRIANGLES, 0, 6);
-        //monren.render(screen, proj, mon);
+        GL33.glEnable(GL33.GL_DEPTH_TEST);
+        GL33.glDisable(GL33.GL_BLEND);
+        monren.render(screen, proj, mon);
     }
 }

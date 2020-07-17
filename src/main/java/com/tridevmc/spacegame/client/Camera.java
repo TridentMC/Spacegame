@@ -64,14 +64,14 @@ public class Camera {
             _pos.add(new Vector3f(_front).cross(_up).normalize().mul(speed));
     }
 
-    public ViewProj generateViewProj(float renderDistance) {
+    public ViewProjection generateViewProjection(float renderDistance) {
         lastView = new Matrix4f()
                 .lookAt(_pos,
                         new Vector3f(_pos.x + _front.x, _pos.y + _front.y, _pos.z + _front.z),
                         _up);
         lastProj = new Matrix4f()
                 .perspective((float)Math.toRadians(FOV),800.0f/600.0f,1.0f,renderDistance);
-        return new ViewProj(lastView, lastProj);
+        return new ViewProjection(lastView, lastProj);
     }
 
     public Vector3f getPos() {

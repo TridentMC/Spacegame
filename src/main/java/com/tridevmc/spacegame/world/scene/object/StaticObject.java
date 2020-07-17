@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.world.scene;
+package com.tridevmc.spacegame.world.scene.object;
 
 import com.tridevmc.spacegame.gl.shader.ShaderProgram;
 import com.tridevmc.spacegame.util.ResourceLocation;
@@ -8,6 +8,8 @@ import org.joml.Vector3f;
 public class StaticObject implements IObject {
     private final Mesh _mesh;
     private final Transform _trans;
+    private static final ShaderProgram _world = ShaderProgram.getShader(new ResourceLocation("spacegame", "world"));
+
 
     public StaticObject(ResourceLocation location, float scale, Quaternionf rotation, Vector3f pos) {
         _mesh = Mesh.getMesh(location);
@@ -20,8 +22,8 @@ public class StaticObject implements IObject {
     }
 
     @Override
-    public void render(ShaderProgram s) {
-       _mesh.render(_trans.mat, s);
+    public void render() {
+       _mesh.render(_trans.mat, _world);
     }
 
     public Transform getTransform() {

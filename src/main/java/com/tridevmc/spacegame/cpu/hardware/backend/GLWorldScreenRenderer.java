@@ -1,6 +1,6 @@
 package com.tridevmc.spacegame.cpu.hardware.backend;
 
-import com.tridevmc.spacegame.client.ViewProj;
+import com.tridevmc.spacegame.client.ViewProjection;
 import com.tridevmc.spacegame.cpu.hardware.I2DScreen;
 import com.tridevmc.spacegame.gl.shader.AttributeType;
 import com.tridevmc.spacegame.gl.shader.ShaderProgram;
@@ -19,6 +19,7 @@ public class GLWorldScreenRenderer extends GLScreenRenderer {
             1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
             -1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
     };
+    private static final Matrix4f _trans = new Matrix4f();
 
     public GLWorldScreenRenderer() {
         super("world_screen", VERTS);
@@ -35,21 +36,13 @@ public class GLWorldScreenRenderer extends GLScreenRenderer {
     }
 
     @Override
-    public void render(ShaderProgram s, ViewProj proj, I2DScreen screen) {
+    public void render(ShaderProgram s, ViewProjection proj, I2DScreen screen) {
         super.render(s, proj, screen);
 
         s.use();
 
-        MemoryStack stack = null;
-        try {
-            stack = MemoryStack.stackPush();
-            s.setUniform(UniformType.MODEL, new Matrix4f().get(stack.mallocFloat(16)));
-            s.setUniform(UniformType.VIEW, proj.view.get(stack.mallocFloat(16)));
-            s.setUniform(UniformType.PROJ, proj.proj.get(stack.mallocFloat(16)));
-        } finally {
-            assert stack != null;
-            stack.pop();
-        }
+        s.setupViewProjection(proj);
+        s.setupModel(_trans);
 
         GL33.glDrawArrays(GL11.GL_TRIANGLES, 0, 6);
     }

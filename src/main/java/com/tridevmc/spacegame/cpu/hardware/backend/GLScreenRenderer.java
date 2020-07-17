@@ -1,6 +1,6 @@
 package com.tridevmc.spacegame.cpu.hardware.backend;
 
-import com.tridevmc.spacegame.client.ViewProj;
+import com.tridevmc.spacegame.client.ViewProjection;
 import com.tridevmc.spacegame.cpu.hardware.I2DScreen;
 import com.tridevmc.spacegame.gl.shader.ShaderProgram;
 import org.lwjgl.opengl.GL33;
@@ -38,13 +38,14 @@ public abstract class GLScreenRenderer implements IScreenRenderer {
     @Override
     public void bind(I2DScreen screen) {
         screen.beginRender();
+        GL33.glActiveTexture(GL33.GL_TEXTURE0);
         GL33.glBindTexture(GL33.GL_TEXTURE_2D, _screenTex);
         GL33.glTexSubImage2D(GL33.GL_TEXTURE_2D, 0, 0, 0, screen.getWidth(), screen.getHeight(), GL33.GL_RGBA, GL33.GL_UNSIGNED_INT_8_8_8_8_REV, screen.getScreenBuffer());
         screen.endRender();
     }
 
     @Override
-    public void render(ShaderProgram program, ViewProj proj, I2DScreen screen) {
+    public void render(ShaderProgram program, ViewProjection proj, I2DScreen screen) {
         bind(screen);
 
         GL33.glBindVertexArray(_vao);

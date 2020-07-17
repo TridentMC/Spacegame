@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.world.scene;
+package com.tridevmc.spacegame.world.scene.object;
 
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;

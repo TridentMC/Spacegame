@@ -23,13 +23,19 @@ public class VertexArrayObject {
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, _ebo);
     }
 
-    public void setupAttributes(ShaderProgram s) {
+    public void setupAttributes(ShaderProgram s, AttributeType ...attributes) {
         if(_vertexesConfigured)
             return;
+
+        GL33.glBindVertexArray(_vao);
+        GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, _vbo);
+        GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, _ebo);
+
         s.use();
 
-        s.setupAttribute(AttributeType.VERTEX);
-        s.setupAttribute(AttributeType.NORMAL);
+        for(AttributeType t : attributes) {
+            s.setupAttribute(t);
+        }
         _vertexesConfigured = true;
     }
 
@@ -50,9 +56,6 @@ public class VertexArrayObject {
         GL33.glBindVertexArray(_vao);
         GL33.glBindBuffer(GL33.GL_ARRAY_BUFFER, _vbo);
         GL33.glBindBuffer(GL33.GL_ELEMENT_ARRAY_BUFFER, _ebo);
-
-        if(!_vertexesConfigured)
-            setupAttributes(shader);
 
         GL33.glDrawElements(GL33.GL_TRIANGLES, _elementCount, GL33.GL_UNSIGNED_INT, 0);
     }

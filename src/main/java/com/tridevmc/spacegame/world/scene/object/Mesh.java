@@ -1,8 +1,9 @@
-package com.tridevmc.spacegame.world.scene;
+package com.tridevmc.spacegame.world.scene.object;
 
 import com.tridevmc.spacegame.SpaceGame;
 import com.tridevmc.spacegame.gl.ObjHelper;
 import com.tridevmc.spacegame.gl.VertexArrayObject;
+import com.tridevmc.spacegame.gl.shader.AttributeType;
 import com.tridevmc.spacegame.gl.shader.ShaderProgram;
 import com.tridevmc.spacegame.gl.shader.UniformType;
 import com.tridevmc.spacegame.util.ResourceLocation;
@@ -14,17 +15,19 @@ import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryStack;
 import org.tinylog.Logger;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Mesh {
-    private static final Map<ResourceLocation, Mesh> _meshCache = new HashMap<>();
-    private final VertexArrayObject _vao;
-    private final ResourceLocation _location;
+    protected static final Map<ResourceLocation, Mesh> _meshCache = new HashMap<>();
+    protected final VertexArrayObject _vao;
+    protected final ResourceLocation _location;
 
     public static void registerMesh(ResourceLocation location) throws IOException {
-        Mesh _mesh = new Mesh(location, "/"+location.name()+".obj");
+        Mesh _mesh = new Mesh(location, new File("model", location.name()+".obj"));
         _meshCache.put(location, _mesh);
     }
 
@@ -40,26 +43,30 @@ public class Mesh {
         return _meshCache.get(location);
     }
 
-    private Mesh(ResourceLocation location, String file) throws IOException {
+    protected Mesh(ResourceLocation location, File file) throws IOException {
         _location = location;
         _vao = new VertexArrayObject();
 
-        Obj _obj = ObjReader.read(SpaceGame.class.getResourceAsStream(file));
+        InputStream stream = getClass().getResourceAsStream("/"+file.getPath());
+        Obj _obj = ObjReader.read(stream);
         _obj = ObjUtils.convertToRenderable(_obj);
 
-        _vao.bind(ObjHelper.getVerticiesAndNormals(_obj), ObjData.getFaceVertexIndices(_obj), ObjData.getTotalNumFaceVertices(_obj));
+        bind(_obj);
+    }
+
+    public void bind(Obj obj) {
+        _vao.bind(ObjHelper.getVerticiesAndNormals(obj), ObjData.getFaceVertexIndices(obj), ObjData.getTotalNumFaceVertices(obj));
+    }
+
+    public void setupAttributes(ShaderProgram shader) {
+        _vao.setupAttributes(shader, AttributeType.VERTEX, AttributeType.NORMAL);
     }
 
     public void render(Matrix4f _trans, ShaderProgram shader) {
         shader.use();
-        MemoryStack stack = null;
-        try {
-            stack = MemoryStack.stackPush();
-            shader.setUniform(UniformType.MODEL, _trans.get(stack.mallocFloat(16)));
-        } finally {
-            assert stack != null;
-            stack.pop();
-        }
+        if(!_vao.isConfigured())
+            setupAttributes(shader);
+        shader.setupModel(_trans);
         _vao.render(shader);
     }
 }

@@ -1,8 +1,11 @@
 package com.tridevmc.spacegame.gl.shader;
 
+import com.tridevmc.spacegame.client.ViewProjection;
 import com.tridevmc.spacegame.util.ResourceLocation;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL33;
+import org.lwjgl.system.MemoryStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,11 +20,12 @@ public class ShaderProgram {
     private final Map<AttributeType, AttributeBinding> _attributes = new HashMap<>();
     private static final Map<ResourceLocation, ShaderProgram> _shaderMap = new HashMap<>();
     private static final float[] threefvBuffer = new float[3];
+    private static MemoryStack _stack = null;
 
     public ShaderProgram(ResourceLocation location) throws IOException {
         this(location,
-                new VertexShader(new File("shaders", location.name()+".vert")),
-                new FragmentShader(new File("shaders", location.name()+".frag")));
+                new VertexShader(new File("shader", location.name()+".vert")),
+                new FragmentShader(new File("shader", location.name()+".frag")));
     }
 
     public ShaderProgram(ResourceLocation location, VertexShader vertexShader, FragmentShader fragmentShader) {
@@ -90,7 +94,31 @@ public class ShaderProgram {
         }
         AttributeBinding binding = _attributes.get(type);
         GL33.glEnableVertexAttribArray(binding.id);
-        GL33.glVertexAttribPointer(binding.id, binding.size, GL33.GL_FLOAT, false, _totalAttributeSize, binding.offset);
+        int size = _attributes.size() == 1 ? 0 : _totalAttributeSize;
+        GL33.glVertexAttribPointer(binding.id, binding.size, GL33.GL_FLOAT, false, size , binding.offset);
+    }
+
+    public void setupViewProjection(ViewProjection proj) {
+        try {
+            _stack = MemoryStack.stackPush();
+            this.setUniform(UniformType.VIEW, proj.view.get(_stack.mallocFloat(16)));
+            this.setUniform(UniformType.PROJ, proj.proj.get(_stack.mallocFloat(16)));
+        } finally {
+            assert _stack != null;
+            _stack.pop();
+        }
+        _stack = null;
+    }
+
+    public void setupModel(Matrix4f model) {
+        try {
+            _stack = MemoryStack.stackPush();
+            this.setUniform(UniformType.MODEL, model.get(_stack.mallocFloat(16)));
+        } finally {
+            assert _stack != null;
+            _stack.pop();
+        }
+        _stack = null;
     }
 
 
