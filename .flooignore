@@ -2,8 +2,9 @@ extern
 node_modules
 tmp
 vendor
-.idea/workspace.xml
-.idea/misc.xml
 
-build/
-out/
+/build/
+/out/
+/.git/
+/.idea/
+/.gradle/
