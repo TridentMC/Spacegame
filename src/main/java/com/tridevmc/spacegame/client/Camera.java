@@ -1,5 +1,6 @@
 package com.tridevmc.spacegame.client;
 
+import com.tridevmc.spacegame.client.input.IInputManager;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;

@@ -1,5 +1,7 @@
 package com.tridevmc.spacegame.client;
 
+import com.tridevmc.spacegame.client.input.IInputManager;
+
 public interface IWindow {
     boolean shouldClose();
     void eventPoll();

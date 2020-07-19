@@ -88,6 +88,8 @@ public final class SpaceGame {
     public static void run() {
         _window.lockCursor();
 
+        _window.getInputManager().registerCursorPosCallback(_camera::updateCameraRotation);
+
         _scene = new Scene();
 
         cpu = new DCPU();

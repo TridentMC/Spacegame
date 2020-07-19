@@ -1,6 +1,7 @@
 package com.tridevmc.spacegame.client;
 
-import com.tridevmc.spacegame.SpaceGame;
+import com.tridevmc.spacegame.client.input.GLFWInputManager;
+import com.tridevmc.spacegame.client.input.IInputManager;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -93,12 +94,7 @@ public class GLFWWindow implements IWindow {
         });
 
         GLFW.glfwSetCursorPosCallback(_window, (long window, double x, double y) -> {
-            SpaceGame._camera.updateCameraRotation(x, y);
-            if(_focused) {
-
-            } /*else {
-                GuiRenderer.updateScreenMouse((float)x, (float)y);
-            }*/
+            _input.callCursorPosCallbacks(x, y);
         });
 
         GLFW.glfwSetWindowSizeCallback(_window, (long window, int width, int height) -> {
