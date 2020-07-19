@@ -1,7 +1,7 @@
 package com.tridevmc.spacegame.cpu.hardware;
 
 import com.tridevmc.spacegame.cpu.DCPU;
-import com.tridevmc.spacegame.gl.texture.ImageUtil;
+import com.tridevmc.spacegame.render.texture.ImageUtil;
 import org.joml.Vector3f;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -216,6 +216,7 @@ public class LEM1802 implements IHardware, I2DScreen {
         }
     }
 
+    @Override
     public Vector3f getAverage() {
         float r = 0.0f;
         float g = 0.0f;

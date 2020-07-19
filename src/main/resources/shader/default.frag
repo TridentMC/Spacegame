@@ -7,5 +7,8 @@ out vec4 outColor;
 
 void main()
 {
-    outColor = texture(tex, TexCoord);
+    float gamma = 2.2;
+    vec4 color = texture(tex, TexCoord);
+    outColor.rgb = pow(color.rgb, vec3(1.0/gamma));
+    outColor.a = color.a;
 }

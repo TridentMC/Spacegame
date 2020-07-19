@@ -1,6 +1,4 @@
-package com.tridevmc.spacegame.gl.shader;
-
-import org.lwjgl.opengl.GL33;
+package com.tridevmc.spacegame.render.shader;
 
 public class AttributeBinding {
     public int id;

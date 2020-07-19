@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.gl.shader;
+package com.tridevmc.spacegame.render.shader;
 
 import com.tridevmc.spacegame.client.ViewProjection;
 import com.tridevmc.spacegame.util.ResourceLocation;
@@ -79,6 +79,13 @@ public class ShaderProgram {
         threefvBuffer[1] = v.y;
         threefvBuffer[2] = v.z;
         GL33.glUniform3fv(_uniforms.get(type), threefvBuffer);
+    }
+
+    public void setUniform(UniformType type, float val) {
+        if(!_uniforms.containsKey(type)) {
+            throw new RuntimeException("Shader doesn't have the '" + type.toString() + "' uniform location!");
+        }
+        GL33.glUniform1f(_uniforms.get(type), val);
     }
 
     public void setUniform(UniformType type, int val) {

@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.gl.shader;
+package com.tridevmc.spacegame.render.shader;
 
 public enum AttributeType {
     VERTEX,

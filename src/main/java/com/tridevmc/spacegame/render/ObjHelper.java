@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.gl;
+package com.tridevmc.spacegame.render;
 
 import de.javagl.obj.FloatTuple;
 import de.javagl.obj.ReadableObj;

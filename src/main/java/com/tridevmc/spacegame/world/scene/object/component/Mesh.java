@@ -1,18 +1,15 @@
-package com.tridevmc.spacegame.world.scene.object;
+package com.tridevmc.spacegame.world.scene.object.component;
 
-import com.tridevmc.spacegame.SpaceGame;
-import com.tridevmc.spacegame.gl.ObjHelper;
-import com.tridevmc.spacegame.gl.VertexArrayObject;
-import com.tridevmc.spacegame.gl.shader.AttributeType;
-import com.tridevmc.spacegame.gl.shader.ShaderProgram;
-import com.tridevmc.spacegame.gl.shader.UniformType;
+import com.tridevmc.spacegame.render.ObjHelper;
+import com.tridevmc.spacegame.render.VertexBuffer;
+import com.tridevmc.spacegame.render.shader.AttributeType;
+import com.tridevmc.spacegame.render.shader.ShaderProgram;
 import com.tridevmc.spacegame.util.ResourceLocation;
 import de.javagl.obj.Obj;
 import de.javagl.obj.ObjData;
 import de.javagl.obj.ObjReader;
 import de.javagl.obj.ObjUtils;
 import org.joml.Matrix4f;
-import org.lwjgl.system.MemoryStack;
 import org.tinylog.Logger;
 
 import java.io.File;
@@ -21,9 +18,12 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO: Refactor this class to not be used as a component.
+//       Most of this logic should probably be abstracted through a Renderer component on objects instead,
+//       which holds a version of this class, preferably API agnostic.
 public class Mesh {
     protected static final Map<ResourceLocation, Mesh> _meshCache = new HashMap<>();
-    protected final VertexArrayObject _vao;
+    protected final VertexBuffer _vao;
     protected final ResourceLocation _location;
 
     public static void registerMesh(ResourceLocation location) throws IOException {
@@ -45,7 +45,7 @@ public class Mesh {
 
     protected Mesh(ResourceLocation location, File file) throws IOException {
         _location = location;
-        _vao = new VertexArrayObject();
+        _vao = new VertexBuffer();
 
         InputStream stream = getClass().getResourceAsStream("/"+file.getPath());
         Obj _obj = ObjReader.read(stream);

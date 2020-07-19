@@ -1,4 +1,4 @@
-package com.tridevmc.spacegame.gl.texture;
+package com.tridevmc.spacegame.render.texture;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;

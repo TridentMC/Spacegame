@@ -1,7 +1,10 @@
 package com.tridevmc.spacegame.world.scene.object;
 
-import com.tridevmc.spacegame.gl.shader.ShaderProgram;
+import com.tridevmc.spacegame.render.shader.ShaderProgram;
 import com.tridevmc.spacegame.util.ResourceLocation;
+import com.tridevmc.spacegame.world.scene.Scene;
+import com.tridevmc.spacegame.world.scene.object.component.Mesh;
+import com.tridevmc.spacegame.world.scene.object.component.Transform;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -24,6 +27,16 @@ public class StaticObject implements IObject {
     @Override
     public void render() {
        _mesh.render(_trans.mat, _world);
+    }
+
+    @Override
+    public void onAdd(Scene scene) {
+
+    }
+
+    @Override
+    public void onRemove(Scene scene) {
+
     }
 
     public Transform getTransform() {

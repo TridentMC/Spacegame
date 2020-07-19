@@ -1,9 +1,9 @@
 package com.tridevmc.spacegame.world.scene.light;
 
-import com.tridevmc.spacegame.gl.shader.AttributeType;
-import com.tridevmc.spacegame.gl.shader.ShaderProgram;
+import com.tridevmc.spacegame.render.shader.AttributeType;
+import com.tridevmc.spacegame.render.shader.ShaderProgram;
 import com.tridevmc.spacegame.util.ResourceLocation;
-import com.tridevmc.spacegame.world.scene.object.Mesh;
+import com.tridevmc.spacegame.world.scene.object.component.Mesh;
 import de.javagl.obj.Obj;
 import de.javagl.obj.ObjData;
 import org.tinylog.Logger;

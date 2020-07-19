@@ -1,8 +1,8 @@
 package com.tridevmc.spacegame.world.scene.light;
 
 import com.tridevmc.spacegame.client.ViewProjection;
-import com.tridevmc.spacegame.gl.shader.ShaderProgram;
-import com.tridevmc.spacegame.gl.shader.UniformType;
+import com.tridevmc.spacegame.render.shader.ShaderProgram;
+import com.tridevmc.spacegame.render.shader.UniformType;
 import com.tridevmc.spacegame.util.ResourceLocation;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -44,12 +44,13 @@ public class PointLight extends StaticLight {
         _lighting.setUniform(UniformType.LIGHT_POS, _position);
         _lighting.setUniform(UniformType.LIGHT_COL, _color);
         _lighting.setUniform(UniformType.LIGHT_ATTENUATION, _attenuation);
+        _lighting.setUniform(UniformType.LIGHT_RADIUS, _radius);
 
         _volume.render(_trans, _lighting);
     }
 
     private void recalculateRadius() {
-        _radius = (float)(-_attenuation.y + Math.sqrt(_attenuation.y * _attenuation.y - 4 * _attenuation.z * (_attenuation.x - (256.0 / 5.0) * 1.0)))/ (2 * _attenuation.z);
+        _radius = (float)(-_attenuation.y + Math.sqrt(_attenuation.y * _attenuation.y - 4 * _attenuation.z * (_attenuation.x - (256.0 / 5.0) * 1.0))) / (2 * _attenuation.z);
         recalculateTransform();
     }
 

@@ -6,24 +6,23 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GL33;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
 
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
-    public final long window;
-    public static final boolean[] KEY_STATES = new boolean[GLFW.GLFW_KEY_LAST+1];
+public class GLFWWindow implements IWindow {
+    private final long _window;
     private int _fWidth;
     private int _fHeight;
     private boolean _focused = false;
     private int _width;
     private int _height;
     private final boolean _vsync = true;
+    private final GLFWInputManager _input = new GLFWInputManager();
 
-    public Window() {
+    public GLFWWindow() {
         GLFWErrorCallback.createPrint(System.err).set();
         boolean init = GLFW.glfwInit();
         if(!init) {
@@ -38,8 +37,8 @@ public class Window {
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
 
-        window = GLFW.glfwCreateWindow(800, 600, "SpaceGame", NULL, NULL);
-        if(window == NULL) {
+        _window = GLFW.glfwCreateWindow(800, 600, "SpaceGame", NULL, NULL);
+        if(_window == NULL) {
             throw new RuntimeException("Unable to create window!");
         }
         try ( MemoryStack stack = MemoryStack.stackPush() ) {
@@ -48,8 +47,8 @@ public class Window {
             IntBuffer pFWidth = stack.mallocInt(1);
             IntBuffer pFHeight = stack.mallocInt(1);
 
-            GLFW.glfwGetWindowSize(window, pWidth, pHeight);
-            GLFW.glfwGetFramebufferSize(window, pFWidth, pFHeight);
+            GLFW.glfwGetWindowSize(_window, pWidth, pHeight);
+            GLFW.glfwGetFramebufferSize(_window, pFWidth, pFHeight);
 
             _width = pWidth.get();
             _height = pHeight.get();
@@ -65,36 +64,36 @@ public class Window {
 
             // Center the window
             GLFW.glfwSetWindowPos(
-                   window,
+                    _window,
                     (vidmode.width() - _width) / 2,
                     (vidmode.height() - _height) / 2
             );
         }
 
-        GLFW.glfwMakeContextCurrent(window);
+        GLFW.glfwMakeContextCurrent(_window);
         if(_vsync) {
             GLFW.glfwSwapInterval(1);
         }
 
-        GLFW.glfwSetKeyCallback(window, (long window, int key, int scancode, int action, int mods) -> {
+        GLFW.glfwSetKeyCallback(_window, (long window, int key, int scancode, int action, int mods) -> {
             if (key > 0)
-                KEY_STATES[key] = (action != GLFW.GLFW_RELEASE);
+                _input.setKeyState(key, action != GLFW.GLFW_RELEASE);
         });
 
-        GLFW.glfwSetWindowFocusCallback(window, (long window, boolean focused) -> {
+        GLFW.glfwSetWindowFocusCallback(_window, (long window, boolean focused) -> {
             if(_focused && !focused) {
                 _focused = false;
             }
         });
 
-        GLFW.glfwSetMouseButtonCallback(window, (long window, int button, int action, int mods) -> {
+        GLFW.glfwSetMouseButtonCallback(_window, (long window, int button, int action, int mods) -> {
             /*if (!_focused) {
                 GuiRenderer.mouseClick(button, action);
             }*/
         });
 
-        GLFW.glfwSetCursorPosCallback(window, (long window, double x, double y) -> {
-            SpaceGame.c.updateCameraRotation(x, y);
+        GLFW.glfwSetCursorPosCallback(_window, (long window, double x, double y) -> {
+            SpaceGame._camera.updateCameraRotation(x, y);
             if(_focused) {
 
             } /*else {
@@ -102,45 +101,77 @@ public class Window {
             }*/
         });
 
-        GLFW.glfwSetWindowSizeCallback(window, (long window, int width, int height) -> {
+        GLFW.glfwSetWindowSizeCallback(_window, (long window, int width, int height) -> {
             _width = width;
             _height = height;
         });
 
-        GLFW.glfwSetFramebufferSizeCallback(window, (long window, int width, int height) -> {
+        GLFW.glfwSetFramebufferSizeCallback(_window, (long window, int width, int height) -> {
             _fWidth = width;
             _fHeight = height;
-            GL33.glViewport(0, 0, width, height);
         });
 
-        GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
-
-        GLFW.glfwShowWindow(window);
+        GLFW.glfwShowWindow(_window);
 
         GL.createCapabilities();
     }
 
+    @Override
+    public boolean shouldClose() {
+        return GLFW.glfwWindowShouldClose(_window);
+    }
+
+    @Override
+    public void eventPoll() {
+        GLFW.glfwPollEvents();
+    }
+
+    @Override
+    public void swapBuffers() {
+        GLFW.glfwSwapBuffers(_window);
+    }
+
+    @Override
     public int width() {
         return _width;
     }
 
+    @Override
     public int height() {
         return _height;
     }
 
+    @Override
     public int fWidth() {
         return _fWidth;
     }
 
+    @Override
     public int fHeight() {
         return _fHeight;
     }
 
+    @Override
     public void destroy() {
-        Callbacks.glfwFreeCallbacks(window);
-        GLFW.glfwDestroyWindow(window);
+        Callbacks.glfwFreeCallbacks(_window);
+        GLFW.glfwDestroyWindow(_window);
 
         GLFW.glfwTerminate();
         GLFW.glfwSetErrorCallback(null);
+    }
+
+    @Override
+    public IInputManager getInputManager() {
+        return _input;
+    }
+
+    @Override
+    public void lockCursor() {
+        GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
+    }
+
+    @Override
+    public void unlockCursor() {
+        GLFW.glfwSetInputMode(_window, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED);
     }
 }

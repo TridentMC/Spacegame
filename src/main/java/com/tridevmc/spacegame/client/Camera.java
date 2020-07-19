@@ -6,7 +6,7 @@ import org.lwjgl.glfw.GLFW;
 
 public class Camera {
     private final Vector3f _pos = new Vector3f(0.0f, 0.0f, 0.0f);
-    private Vector3f _front = new Vector3f(0.0f, 0.0f, 1.0f);
+    private Vector3f _front = new Vector3f(0.0f, 0.0f, 1.0f/8.0f);
     private final Vector3f _up = new Vector3f(0.0f, 1.0f, 0.0f);
 
     private double _yaw = 0.0;
@@ -20,12 +20,9 @@ public class Camera {
 
     private static final double _SENSITIVITY = 0.05;
 
-    public static final int FOV = 90;
+    public static int FOV = 90;
 
-    public void resetMouse() {
-        _mlastX = 400;
-        _mlastY = 300;
-    }
+    public static float ASPECT = 800.0f/600.0f;
 
     public void updateCameraRotation(double x, double y) {
         double xOffset = x - _mlastX;
@@ -52,15 +49,18 @@ public class Camera {
         _front = f.normalize();
     }
 
-    public void updatePosition(double delta, boolean[]  keyStates) {
+    public void updatePosition(double delta, IInputManager manager) {
         float speed = (float)delta * 16.0f;
-        if (keyStates[GLFW.GLFW_KEY_W])
+
+        // TODO: Custom keycode abstraction layer.
+
+        if (manager.isKeyDown(GLFW.GLFW_KEY_W))
             _pos.add(new Vector3f(_front).mul(speed));
-        if (keyStates[GLFW.GLFW_KEY_S])
+        if (manager.isKeyDown(GLFW.GLFW_KEY_S))
             _pos.sub(new Vector3f(_front).mul(speed));
-        if (keyStates[GLFW.GLFW_KEY_A])
+        if (manager.isKeyDown(GLFW.GLFW_KEY_A))
             _pos.sub(new Vector3f(_front).cross(_up).normalize().mul(speed));
-        if (keyStates[GLFW.GLFW_KEY_D])
+        if (manager.isKeyDown(GLFW.GLFW_KEY_D))
             _pos.add(new Vector3f(_front).cross(_up).normalize().mul(speed));
     }
 
@@ -69,28 +69,30 @@ public class Camera {
                 .lookAt(_pos,
                         new Vector3f(_pos.x + _front.x, _pos.y + _front.y, _pos.z + _front.z),
                         _up);
+
         lastProj = new Matrix4f()
-                .perspective((float)Math.toRadians(FOV),800.0f/600.0f,1.0f,renderDistance);
+                .perspective((float)Math.toRadians(FOV),ASPECT,1.0f,renderDistance);
+
         return new ViewProjection(lastView, lastProj);
     }
 
-    public Vector3f getPos() {
+    public Vector3f pos() {
         return _pos;
     }
 
-    public Vector3f getFront() {
+    public Vector3f front() {
         return _front;
     }
 
-    public Vector3f getUp() {
+    public Vector3f up() {
         return _up;
     }
 
-    public double getPitch() {
+    public double pitch() {
         return _pitch;
     }
 
-    public double getYaw() {
+    public double yaw() {
         return _yaw;
     }
 }
