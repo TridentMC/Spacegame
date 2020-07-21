@@ -69,7 +69,7 @@ public final class SpaceGame {
     }
 
     private static int loadRom(DCPU cpu, File file) {
-        InputStream s = SpaceGame.class.getResourceAsStream(file.getPath());
+        InputStream s = SpaceGame.class.getClassLoader().getResourceAsStream(file.getPath());
 
         int a = 0x0000;
         while(true) {
